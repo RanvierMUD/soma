@@ -1,0 +1,45 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="soma-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        background-color: #000;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class SomaApp extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'soma-app'; }
+      static get properties() {
+        return {
+        };
+      }
+
+      ready() {
+        super.ready();
+        this.ansi_up = new AnsiUp;
+        if (typeof require === 'function') {
+          var Store = require('electron-store');
+          this.store = new Store;
+        }
+      }
+    }
+
+    window.customElements.define(SomaApp.is, SomaApp);
+  </script>
+</dom-module>

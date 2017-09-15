@@ -1,0 +1,7 @@
+{
+  "name": "Soma",
+  "short_name": "Soma",
+  "description": "Area builder for the Ranvier game engine",
+  "start_url": "/",
+  "display": "standalone"
+}
