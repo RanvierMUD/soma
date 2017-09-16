@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
+<link rel="import" href="electron-wrapper.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="soma-app">
@@ -8,14 +9,34 @@
     <style include="shared-styles">
       :host {
         display: block;
-        background-color: #000;
+        background-color: var(--ranvier-light-bg);
         height: 100vh;
         width: 100vw;
         overflow: hidden;
         display: flex;
         flex-direction: column;
       }
+
+      #pages {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #pages > * {
+        flex: 1;
+      }
+
+      .test {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
+
+    <iron-pages id="pages" selected="[[page]]" attr-for-selected="data-page">
+      <soma-area-select data-page="area-select" on-area-select="_selectArea"></soma-area-select>
+    </iron-pages>
   </template>
 
   <script>
@@ -23,21 +44,32 @@
      * @customElement
      * @polymer
      */
-    class SomaApp extends Polymer.GestureEventListeners(Polymer.Element) {
+    class SomaApp extends Polymer.GestureEventListeners(Soma.ElectronWrapper(Polymer.Element)) {
       static get is() { return 'soma-app'; }
       static get properties() {
         return {
+          page: {
+            type: String,
+            value: 'area-select',
+          },
+
+          loadedArea: {
+            type: Object,
+            notify: true,
+          },
         };
       }
 
       ready() {
         super.ready();
-        this.ansi_up = new AnsiUp;
         if (typeof require === 'function') {
           var Store = require('electron-store');
           this.store = new Store;
         }
+
+        //this.$electron.remote.dialog.showMessageBox({ title: 'Test', message: 'Foobar' });
       }
+
     }
 
     window.customElements.define(SomaApp.is, SomaApp);

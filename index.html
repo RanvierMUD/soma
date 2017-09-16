@@ -11,12 +11,16 @@
     <link rel="manifest" href="./manifest.json">
 
     <script src="./bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <script>
+      window.Soma = {};
+    </script>
 
     <link rel="import" href="./src/soma-app/soma-app.html">
     <style>
     html {
       box-sizing: border-box;
       --ranvier-green: #689F63;
+      --ranvier-light-bg: #fff8e1;
     }
     *, *:before, *:after {
       box-sizing: inherit;
@@ -52,7 +56,7 @@
     html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Saira Condensed', sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-size: 16px;
       box-sizing: border-box;
     }

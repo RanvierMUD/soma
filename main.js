@@ -18,6 +18,7 @@ function createWindow () {
     height: 768,
     icon: path.join(__dirname, 'assets/icons/png/64x64.png'),
   });
+  mainWindow.maximize();
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({

@@ -1,0 +1,16 @@
+<script>
+(function () {
+  'use strict';
+
+  window.Soma = window.Soma || {};
+  /**
+   * Wrapper mixin to make the electron lib available to an element
+   */
+  Soma.ElectronWrapper = superClass => class extends superClass {
+    constructor() {
+      super();
+      this.$electron = require('electron');
+    }
+  };
+})();
+</script>
