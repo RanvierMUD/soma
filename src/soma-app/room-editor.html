@@ -77,9 +77,10 @@
     </style>
 
     <div class="toolbar">
-      <span class="back-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
+      <span class="toolbar-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
       <span class="toolbar__title">Editing Room</span>
-      <span class="save-btn material-icons" on-tap="save" title="Save">save</span>
+      <span class="toolbar-btn material-icons" on-tap="deleteRoom" title="Delete">delete</span>
+      <span class="toolbar-btn material-icons" on-tap="save" title="Save">save</span>
     </div>
 
     <div class="content">
@@ -252,6 +253,10 @@
       }
 
       _roomSet() {
+        if (!this.room) {
+          return;
+        }
+
         if (this.room.coordinates) {
           const coords = this.room.coordinates;
           this._coordinates = {
@@ -281,7 +286,7 @@
       }
 
       _getRoomEntities(type) {
-        return !this.room[type] ? [] : this.room[type].map(item => {
+        return (!this.room || !this.room[type]) ? [] : this.room[type].map(item => {
           if (typeof item === 'string') {
             return { id: item }
           }
@@ -417,6 +422,17 @@
         this.dispatchEvent(new CustomEvent('save', { detail: {
           room: this.room,
         }}));
+      }
+
+      deleteRoom() {
+        if (!this.room.id) {
+          window.alert("The can't be deleted if you unset its id");
+          return;
+        }
+
+        if (window.confirm('Are you sure? If you have not committed in git yet it will be lost forever.')) {
+          this.dispatchEvent(new CustomEvent('delete-room'));
+        }
       }
     }
 

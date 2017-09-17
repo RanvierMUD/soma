@@ -104,6 +104,7 @@
         area="[[activeArea]]"
         areas="[[areas]]"
         on-save="_saveRoom"
+        on-delete-room="_deleteRoom"
         on-exit="_exitRoomEditor"
       ></room-editor>
     </iron-pages>
@@ -219,7 +220,7 @@
 
         if (this._editingRoomId) {
           if (this._editingRoomId !== room.id) {
-            delete this.areas[this.activeArea.name].rooms[`${areaName}:${this._editingRoomId}`];
+            delete this.areas[areaName].rooms[`${areaName}:${this._editingRoomId}`];
             this.notifyPath(`areas.${areaName}.rooms.${areaName}:${this._editingRoomId}`, undefined);
           }
         }
@@ -236,6 +237,32 @@
           Object.values(this.activeArea.rooms)
         );
         window.alert('Area saved');
+      }
+
+      _deleteRoom() {
+        const areaName = this.activeArea.name;
+
+        if (!this._editingRoomId) {
+          this.page = 'area-dashboard';
+          window.alert('Room deleted');
+          this.$.roomEditor.room = null;
+          return;
+        }
+
+        delete this.areas[this.activeArea.name].rooms[`${areaName}:${this._editingRoomId}`];
+        this.notifyPath(`areas.${areaName}.rooms.${areaName}:${this._editingRoomId}`, undefined);
+
+        // trigger redraw
+        this.activeArea = null;
+        this.activeArea = this.areas[areaName];
+
+        this.$.ranvierService.saveAreaEntityData(
+          this.activeArea,
+          'rooms',
+          Object.values(this.activeArea.rooms)
+        );
+        this.page = 'area-dashboard';
+        window.alert('Room deleted');
       }
 
       _exitRoomEditor() {
