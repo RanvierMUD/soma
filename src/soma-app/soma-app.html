@@ -229,6 +229,13 @@
         // trigger redraw
         this.activeArea = null;
         this.activeArea = this.areas[areaName];
+
+        this.$.ranvierService.saveAreaEntityData(
+          this.activeArea,
+          'rooms',
+          Object.values(this.activeArea.rooms)
+        );
+        window.alert('Area saved');
       }
 
       _exitRoomEditor() {
