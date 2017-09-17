@@ -22,6 +22,10 @@
         justify-content: center;
       }
 
+      #areaTitleInput {
+        text-align: center;
+      }
+
       .map-container {
         flex: 1;
         width: 100%;
@@ -102,6 +106,10 @@
         flex-direction: column;
         overflow-y: auto;
       }
+      .add-btn {
+        cursor: pointer;
+        user-select: none;
+      }
       .entity-list__item {
         width: 100%;
         height: 52px;
@@ -122,7 +130,16 @@
 
     <div class="toolbar">
       <span class="back-btn material-icons" on-tap="goBack">arrow_back</span>
-      <span class="toolbar__title">[[area.manifest.title]]</span>
+      <span class="toolbar__title" on-dblclick="_toggleTitleEdit" title="Double Click to Edit">
+        <span hidden$="[[_editingTitle]]">[[area.manifest.title]]</span>
+        <input
+          id="areaTitleInput"
+          type="text"
+          value="{{area.manifest.title::input}}"
+          on-keydown="_finishTitleEdit"
+          hidden$="[[!_editingTitle]]"
+        >
+      </span>
     </div>
 
     <div class="content">
@@ -213,12 +230,30 @@
           floor: {
             type: Number,
             value: 0
-          }
+          },
+
+          _editingTitle: {
+            type: Boolean,
+            value: false,
+          },
         };
       }
 
       goBack() {
         this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      _toggleTitleEdit() {
+        this._editingTitle = !this._editingTitle;
+        setTimeout(_ => {
+          this.$.areaTitleInput.focus();
+        }, 100);
+      }
+
+      _finishTitleEdit(e) {
+        if (e.key === 'Enter') {
+          this._toggleTitleEdit();
+        }
       }
 
       _mapSelectRoom(e) {
