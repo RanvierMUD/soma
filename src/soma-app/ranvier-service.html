@@ -19,6 +19,21 @@
       };
     }
 
+    createRoom() {
+      return {
+        id: null,
+        behaviors: {},
+        coordinates: null,
+        description: '',
+        doors: {},
+        items: [],
+        meta: {},
+        npcs: [],
+        script: null,
+        title: '',
+      };
+    }
+
     loadRepo(repo) {
       this.loadMessages = [];
       const bundlesPath = `${repo}/bundles/`;
@@ -146,3 +161,4 @@
   window.customElements.define(RanvierService.is, RanvierService);
   </script>
 </dom-module>
+<!-- vim: set ft=javascript : -->

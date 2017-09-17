@@ -1,6 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 
 <link rel="import" href="shared-styles.html">
 
@@ -29,19 +33,96 @@
         padding: 12px;
       }
 
+      .coordinates, .items-container {
+        margin-top: 12px;
+      }
+      .coordinates-label, .items-label {
+        font-size: 12px;
+        color: #737373;
+      }
+      .coordinates__inputs {
+        display: flex;
+        align-items: flex-end;
+      }
+      #coordX, #coordY, #coordZ {
+        display: inline-block;
+        width: 40px;
+      }
+      #coordY, #coordZ {
+        margin-left: 12px;
+      }
+
+      #roomDesc {
+        --paper-input-container-input: {
+          font-family: 'Roboto Mono';
+        };
+      }
+
+      .items-list {
+        padding-left: 12px;
+      }
+      .item-container {
+        margin-bottom: 12px;
+      }
+
+      .list-add {
+        padding: 8px;
+        display: flex;
+        margin-top: 12px;
+      }
+
     </style>
 
     <div class="toolbar">
-      <span class="back-btn material-icons" on-tap="goBack">arrow_back</span>
+      <span class="back-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
       <span class="toolbar__title">Editing Room</span>
-      <span class="save-btn material-icons" on-tap="goBack">save</span>
+      <span class="save-btn material-icons" on-tap="goBack" title="Save">save</span>
     </div>
 
     <div class="content">
       <paper-input id="roomId" label="ID" value="{{room.id}}">
         <span class="area-name" slot="prefix">[[area.name]]:</span>
       </paper-input>
+
+      <div class="coordinates">
+        <label class="coordinates-label">Coordinates</label>
+        <div class="coordinates__inputs">
+          <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}" always-float-label></paper-input>,
+          <paper-input id="coordY" label="Y" type="number" value="{{_coordinates.y::change}}" always-float-label></paper-input>,
+          <paper-input id="coordZ" label="Z" type="number" value="{{_coordinates.z::change}}" always-float-label></paper-input>
+        </div>
+      </div>
+
       <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
+
+      <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
+
+      <div class="items-container">
+        <label class="items-label">Items</label>
+        <div class="items-list">
+          <template is="dom-repeat" items="[[_getRoomItems(room.items.*)]]">
+            <div class="item-container">
+              <vaadin-combo-box
+                label="Item"
+                items="[[allItems]]"
+                item-label-path="name"
+                item-value-path="value"
+                value="[[item.id]]"
+                on-change="_itemValueUpdated"
+              >
+                <template>
+                  <span class="select-item__label">[[item.name]]</span><br>
+                  <span class="select-item__value">[[item.value]]</span>
+                </template>
+              </vaadin-combo-box>
+            </div>
+          </template>
+
+          <button class="ranvier-btn list-add" on-tap="_addItem" title="Add Item">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+      </div>
     </div>
   </template>
   <script>
@@ -57,9 +138,22 @@
             type: Object,
           },
 
+          allItems: {
+            type: Array,
+            computed: '_computeAllItems(areas.*.items.*)',
+          },
+
           room: {
             type: Object,
             observer: '_roomSet'
+          },
+
+          _coordinates: {
+            type: Object,
+            value: _ => {
+              return { x: null, y: null, z: null };
+            },
+            notify: true,
           },
 
           dirty: {
@@ -71,7 +165,8 @@
 
       static get observers() {
         return [
-          '_dirtify(room.*)'
+          '_dirtify(room.*)',
+          '_updateCoordinates(_coordinates.*)',
         ];
       }
 
@@ -85,6 +180,84 @@
 
       _roomSet() {
         this.dirty = false;
+        if (this.room.coordinates) {
+          const coords = this.room.coordinates;
+          this._coordinates = {
+            x: coords[0],
+            y: coords[1],
+            z: coords[2],
+          };
+          this.notifyPath('_coordinates');
+        }
+      }
+
+      _updateCoordinates() {
+        if (!this.room) {
+          return;
+        }
+
+        let x = parseInt(this._coordinates.x);
+        let y = parseInt(this._coordinates.y);
+        let z = parseInt(this._coordinates.z);
+        x = isNaN(x) ? 0 : x;
+        y = isNaN(y) ? 0 : y;
+        z = isNaN(z) ? 0 : z;
+
+
+        this.set('room.coordinates', [x, y, z]);
+      }
+
+      _getRoomItems() {
+        return !this.room.items ? [] : this.room.items.map(item => {
+          if (typeof item === 'string') {
+            return { id: item }
+          }
+
+          return item;
+        });
+      }
+
+      _addItem() {
+        this.push('room.items', {
+          id: null,
+        });
+      }
+
+      _itemValueUpdated(e) {
+        const index = e.model.index;
+        const value = e.currentTarget.value;
+        if (value === '') {
+          this.splice('room.items', index, 1);
+          return;
+        }
+
+        if (typeof this.room.items[index] === 'string') {
+          this.set(`room.items.${index}`, value);
+        } else {
+          this.set(`room.items.${index}`, {
+            id: value,
+          });
+        }
+      }
+
+      _computeAllItems() {
+        if (!this.areas) {
+          return [];
+        }
+
+        let items = [];
+        for (const area of Object.values(this.areas)) {
+          if (area.items) {
+            Object.entries(area.items).forEach(([ref, item]) => {
+              items.push({
+                value: ref,
+                name: item.name,
+              });
+            });
+          }
+        }
+
+        return items;
       }
 
       goBack() {

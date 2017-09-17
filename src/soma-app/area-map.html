@@ -188,7 +188,7 @@
 
             td.addEventListener('click', e => {
               if (room) {
-                this.dispatchEvent(new CustomEvent('select-room', { detail: {
+                this.dispatchEvent(new CustomEvent('select-room', { model: {
                   room,
                 }}));
               } else {

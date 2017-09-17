@@ -47,8 +47,16 @@
         padding: 4px;
       }
 
-      paper-input {
+      paper-input, paper-input-container, paper-textarea, vaadin-combo-box {
         --paper-input-container-focus-color: var(--ranvier-green);
+      }
+      input {
+        font: inherit;
+        outline: none;
+        box-shadow: none;
+        border: none;
+        width: auto;
+        text-align: center;
       }
 
       .toolbar {
@@ -59,7 +67,7 @@
         padding: 0 8px;
         color: var(--ranvier-light-bg);
       }
-      .back-btn {
+      .back-btn, .save-btn {
         cursor: pointer;
       }
       .toolbar__title {

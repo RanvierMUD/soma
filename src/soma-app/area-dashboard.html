@@ -173,13 +173,12 @@
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'rooms', area.rooms.*)]]" as="room">
             <div
               class="entity-list__item"
+              on-tap="_selectRoom"
               on-mouseover="_hoverRoom"
               on-mouseout="_clearHoverRoom"
             >
               [[room.title]]
-              <div class="entity-list__item__id" on-tap="_selectRoom">
-                [[room.id]]
-              </div>
+              <div class="entity-list__item__id">[[room.id]]</div>
             </div>
           </template>
         </div>
@@ -258,18 +257,21 @@
       }
 
       _mapCreateRoom(e) {
-        const coords = e.detail.coords;
-        // TODO
+        this.dispatchEvent(new CustomEvent('create-room', { detail: {
+          room: {
+            coordinates: e.detail.coords
+          }
+        }}));
       }
 
       _createRoom() {
-        // TODO
+        this.dispatchEvent(new CustomEvent('create-room'));
       }
 
       _selectRoom(e) {
-        const room = e.detail.room;
+        const room = e.model.room;
         this.dispatchEvent(new CustomEvent('edit-room', { detail: {
-          room: e.detail.room,
+          room,
         }}));
       }
 

@@ -5,7 +5,8 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "iron-pages": "PolymerElements/iron-pages#^2.0.0",
-    "paper-input": "PolymerElements/paper-input#^2.0.2"
+    "paper-input": "PolymerElements/paper-input#^2.0.2",
+    "vaadin-combo-box": "^2.0.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
