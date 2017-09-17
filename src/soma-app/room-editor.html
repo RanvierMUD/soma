@@ -33,10 +33,10 @@
         padding: 12px;
       }
 
-      .coordinates, .items-container {
+      .coordinates, .entities-container {
         margin-top: 12px;
       }
-      .coordinates-label, .items-label {
+      .coordinates-label, .entities-label {
         font-size: 12px;
         color: #737373;
       }
@@ -58,11 +58,14 @@
         };
       }
 
-      .items-list {
+      .entities-list {
         padding-left: 12px;
       }
-      .item-container {
+      .entity-container {
+        border-bottom: 1px dashed var(--ranvier-green);
         margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
       }
 
       .list-add {
@@ -76,7 +79,7 @@
     <div class="toolbar">
       <span class="back-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
       <span class="toolbar__title">Editing Room</span>
-      <span class="save-btn material-icons" on-tap="goBack" title="Save">save</span>
+      <span class="save-btn material-icons" on-tap="save" title="Save">save</span>
     </div>
 
     <div class="content">
@@ -97,22 +100,23 @@
 
       <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
 
-      <div class="items-container">
-        <label class="items-label">Items</label>
-        <div class="items-list">
-          <template is="dom-repeat" items="[[_getRoomItems(room.items.*)]]">
-            <div class="item-container">
+      <!-- items list -->
+      <div class="entities-container">
+        <label class="entities-label">Items</label>
+        <div class="entities-list">
+          <template is="dom-repeat" items="[[_getRoomEntities('items', room.items.*)]]">
+            <div class="entity-container">
               <vaadin-combo-box
                 label="Item"
-                items="[[allItems]]"
+                items="[[allNpcs]]"
                 item-label-path="name"
                 item-value-path="value"
                 value="[[item.id]]"
                 on-change="_itemValueUpdated"
               >
                 <template>
-                  <span class="select-item__label">[[item.name]]</span><br>
-                  <span class="select-item__value">[[item.value]]</span>
+                  <span class="select-entity__label">[[item.name]]</span><br>
+                  <span class="select-entity__value">[[item.value]]</span>
                 </template>
               </vaadin-combo-box>
             </div>
@@ -123,6 +127,65 @@
           </button>
         </div>
       </div>
+
+      <!-- npcs list -->
+      <div class="entities-container">
+        <label class="entities-label">Npcs</label>
+        <div class="entities-list">
+          <template is="dom-repeat" items="[[_getRoomEntities('npcs', room.npcs.*)]]">
+            <div class="entity-container">
+              <vaadin-combo-box
+                label="Npc"
+                items="[[allNpcs]]"
+                item-label-path="name"
+                item-value-path="value"
+                value="[[item.id]]"
+                on-change="_npcValueUpdated"
+              >
+                <template>
+                  <span class="select-entity__label">[[item.name]]</span><br>
+                  <span class="select-entity__value">[[item.value]]</span>
+                </template>
+              </vaadin-combo-box>
+            </div>
+          </template>
+
+          <button class="ranvier-btn list-add" on-tap="_addNpc" title="Add Npc">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- exits list -->
+      <div class="entities-container">
+        <label class="entities-label">Exits</label>
+        <div class="entities-list">
+          <template is="dom-repeat" items="[[_getRoomEntities('exits', room.exits.*)]]">
+            <div class="entity-container">
+              <vaadin-combo-box
+                label="Room"
+                items="[[allRooms]]"
+                item-label-path="name"
+                item-value-path="value"
+                value="[[item.roomId]]"
+                on-change="_exitValueUpdated"
+              >
+                <template>
+                  <span class="select-entity__label">[[item.name]]</span><br>
+                  <span class="select-entity__value">[[item.value]]</span>
+                </template>
+              </vaadin-combo-box>
+
+              <paper-input label="Direction" value="[[item.direction]]" on-change="_exitDirectionUpdated" always-float-label></paper-input>
+            </div>
+          </template>
+
+          <button class="ranvier-btn list-add" on-tap="_addExit" title="Add Exit">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </template>
   <script>
@@ -140,7 +203,17 @@
 
           allItems: {
             type: Array,
-            computed: '_computeAllItems(areas.*.items.*)',
+            computed: '_computeAllEntities("items", "name", areas.*.items.*)',
+          },
+
+          allNpcs: {
+            type: Array,
+            computed: '_computeAllEntities("npcs", "name", areas.*.npcs.*)',
+          },
+
+          allRooms: {
+            type: Array,
+            computed: '_computeAllEntities("rooms", "title", areas.*.rooms.*)',
           },
 
           room: {
@@ -207,8 +280,8 @@
         this.set('room.coordinates', [x, y, z]);
       }
 
-      _getRoomItems() {
-        return !this.room.items ? [] : this.room.items.map(item => {
+      _getRoomEntities(type) {
+        return !this.room[type] ? [] : this.room[type].map(item => {
           if (typeof item === 'string') {
             return { id: item }
           }
@@ -217,41 +290,78 @@
         });
       }
 
+
       _addItem() {
-        this.push('room.items', {
-          id: null,
-        });
+        this._addEntity('items', _ => ({ id: null }));
       }
 
-      _itemValueUpdated(e) {
-        const index = e.model.index;
-        const value = e.currentTarget.value;
-        if (value === '') {
-          this.splice('room.items', index, 1);
+      _addNpc() {
+        this._addEntity('npcs', _ => ({ id: null }));
+      }
+
+      _addExit() {
+        this._addEntity('exits', _ => ({ roomId: null }));
+      }
+
+      _addEntity(type, defaultFn) {
+        const val = defaultFn();
+        if (!this.room[type]) {
+          this.set(`room.${type}`, []);
+        }
+
+        const entities = this.room[type];
+        // prevent adding an additional entity if they haven't filled in the last one
+        if (entities.length && JSON.stringify(entities[entities.length - 1]) === JSON.stringify(val)) {
           return;
         }
 
-        if (typeof this.room.items[index] === 'string') {
-          this.set(`room.items.${index}`, value);
+        this.push(`room.${type}`, val);
+      }
+
+      _itemValueUpdated(e) {
+        this._updateEntityValue('items', 'id', e);
+      }
+
+      _npcValueUpdated(e) {
+        this._updateEntityValue('npcs', 'id', e);
+      }
+
+      _exitValueUpdated(e) {
+        this._updateEntityValue('exits', 'roomId', e);
+      }
+
+      _exitDirectionUpdated(e) {
+        this._updateEntityValue('exits', 'direction', e);
+      }
+
+
+      _updateEntityValue(type, path, e) {
+        const index = e.model.index;
+        const value = e.currentTarget.value;
+        if (value === '') {
+          this.splice(`room.${type}`, index, 1);
+          return;
+        }
+
+        if (typeof this.room[type][index] === 'string') {
+          this.set(`room.${type}.${index}`, value);
         } else {
-          this.set(`room.items.${index}`, {
-            id: value,
-          });
+          this.set(`room.${type}.${index}.${path}`, value);
         }
       }
 
-      _computeAllItems() {
+      _computeAllEntities(type, labelProp) {
         if (!this.areas) {
           return [];
         }
 
         let items = [];
         for (const area of Object.values(this.areas)) {
-          if (area.items) {
-            Object.entries(area.items).forEach(([ref, item]) => {
+          if (area[type]) {
+            Object.entries(area[type]).forEach(([ref, item]) => {
               items.push({
                 value: ref,
-                name: item.name,
+                name: `${item[labelProp]} (${area.name})`,
               });
             });
           }
@@ -272,6 +382,25 @@
       }
 
       save() {
+        // clear bad values
+        if (this.room.items) {
+          this.set('room.items', this.room.items.filter(item => {
+            return typeof item === 'string' ? true : !!item.id;
+          }));
+        }
+
+        if (this.room.npcs) {
+          this.set('room.npcs', this.room.npcs.filter(npc => {
+            return typeof npc === 'string' ? true : !!npc.id;
+          }));
+        }
+
+        if (this.room.exits) {
+          this.set('room.exits', this.room.npcs.filter(exit => {
+            return !!exit.roomId;
+          }));
+        }
+
         this.dispatchEvent(new CustomEvent('save', { detail: {
           room: this.room,
         }}));
