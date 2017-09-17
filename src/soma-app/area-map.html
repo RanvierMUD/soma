@@ -52,7 +52,7 @@
       color: var(--ranvier-light-bg);
     }
     .highlighted-cell {
-      border-color: var(--ranvier-light-green);
+      border-color: #000;
     }
     .has-npcs, .has-items {
       height: 6px;
@@ -136,9 +136,11 @@
       }
 
       highlightRoom(room) {
-        const previousCell = this.shadowRoot.querySelector('.highlighted-cell');
-        if (previousCell) {
-          previousCell.classList.remove('highlighted-cell');
+        const previousCells = this.shadowRoot.querySelectorAll('.highlighted-cell');
+        if (previousCells.length) {
+          for (const previousCell of previousCells) {
+            previousCell.classList.remove('highlighted-cell');
+          }
         }
 
         if (!room) {
@@ -152,6 +154,38 @@
 
         const cell = this.shadowRoot.querySelector(`#room-${x}-${y}-${z}`);
         cell.classList.add('highlighted-cell');
+      }
+
+      highlightItem(item) {
+        const previousCells = this.shadowRoot.querySelectorAll('.highlighted-cell');
+        if (previousCells.length) {
+          for (const previousCell of previousCells) {
+            previousCell.classList.remove('highlighted-cell');
+          }
+        }
+
+        if (!item) {
+          return;
+        }
+
+        for (const room of Object.values(this.rooms)) {
+          if (!room.coordinates || !room.items) {
+            continue;
+          }
+
+          const [ x, y, z ] = room.coordinates;
+          const cell = this.shadowRoot.querySelector(`#room-${x}-${y}-${z}`);
+          if (this.floor !== z) {
+            continue;
+          }
+
+          for (const roomItem of room.items) {
+            const id = typeof roomItem === 'string' ? roomItem : roomItem.id;
+            if (id === item) {
+              cell.classList.add('highlighted-cell');
+            }
+          }
+        }
       }
 
       _computeFloors() {

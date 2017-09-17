@@ -306,6 +306,14 @@
         }}));
       }
 
+      _hoverItem(e) {
+        const item = e.model.item;
+        this.$.areaMap.highlightItem(`${this.area.name}:${item.id}`);
+      }
+
+      _clearHoverItem() {
+        this.$.areaMap.highlightItem(null);
+      }
 
       _getAreaEntities(area, type) {
         return (this.area && this.area[type]) ? Object.values(this.area[type]) : [];
