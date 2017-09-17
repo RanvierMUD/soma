@@ -9,6 +9,7 @@
 <link rel="import" href="load-icon.html">
 
 <link rel="import" href="area-list.html">
+<link rel="import" href="area-dashboard.html">
 
 <dom-module id="soma-app">
   <template>
@@ -79,7 +80,19 @@
         </div>
       </div>
 
-      <area-list id="areaList" data-page="area-list" areas="{{areas}}"></area-list>
+      <area-list
+        id="areaList"
+        data-page="area-list"
+        areas="{{areas}}"
+        on-exit="_exitAreaList"
+        on-select-area="_areaListSelect"
+      ></area-list>
+
+      <area-dashboard
+        id="areaDashboard"
+        data-page="area-dashboard"
+        area="{{activeArea}}"
+        on-exit="_exitAreaDashboard"
     </iron-pages>
 
     <ranvier-service id="ranvierService" load-messages="{{_loadMessages}}"></ranvier-service>
@@ -106,6 +119,10 @@
           areas: {
             type: Object,
             value: _ => ({}),
+          },
+
+          activeArea: {
+            type: Object,
           },
         };
       }
@@ -152,8 +169,22 @@
         this.areas = this.$.ranvierService.loadRepo(this.loadedRepo);
         this.page = 'area-list';
       }
+
+      _exitAreaList() {
+        this.page = 'repo-select';
+      }
+
+      _areaListSelect(e) {
+        this.activeArea = e.detail.area;
+        this.page = 'area-dashboard';
+      }
+
+      _exitAreaDashboard() {
+        this.page = 'area-list';
+      }
     }
 
     window.customElements.define(SomaApp.is, SomaApp);
   </script>
 </dom-module>
+<!-- vim: set ft=javascript : -->

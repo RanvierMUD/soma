@@ -10,16 +10,34 @@
       :host {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
       }
 
-      h2, h4 {
-        margin: 0;
+      .toolbar {
+        height: 52px;
+        background-color: var(--ranvier-green);
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        color: var(--ranvier-light-bg);
       }
-      h4 {
-        color: #444;
-        font-weight: normal;
+      .back-btn {
+        cursor: pointer;
+      }
+      .toolbar__title {
+        flex: 1;
+        font-family: 'Saira Condensed';
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        text-indent: -32px;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
       }
 
       .area {
@@ -64,19 +82,26 @@
         font-family: 'Roboto Mono';
       }
     </style>
-    <h2>Loaded Areas</h2>
-    <h4>Select area to work on</h4>
-    <div class="area-list">
-    <template is="dom-repeat" items="[[_areaEntries]]" as="area">
-      <div class="area" on-tap="selectArea">
-        <div class="area__title">[[area.manifest.title]]</div>
-        <div class="area__stats">
-          <div class="area__stats__stat">Items: [[_getAreaStat(area.name, 'items')]]</div>
-          <div class="area__stats__stat">NPCs:  [[_getAreaStat(area.name, 'npcs')]]</div>
-          <div class="area__stats__stat">Rooms: [[_getAreaStat(area.name, 'rooms')]]</div>
+
+    <div class="toolbar">
+      <span class="back-btn material-icons" on-tap="goBack">arrow_back</span>
+      <span class="toolbar__title">Loaded Areas</span>
+    </div>
+
+    <div class="content">
+      <h3>Select area to work on</h3>
+      <div class="area-list">
+      <template is="dom-repeat" items="[[_areaEntries]]" as="area">
+        <div class="area" on-tap="selectArea">
+          <div class="area__title">[[area.manifest.title]]</div>
+          <div class="area__stats">
+            <div class="area__stats__stat">Items: [[_getAreaStat(area.name, 'items')]]</div>
+            <div class="area__stats__stat">NPCs:  [[_getAreaStat(area.name, 'npcs')]]</div>
+            <div class="area__stats__stat">Rooms: [[_getAreaStat(area.name, 'rooms')]]</div>
+          </div>
         </div>
+      </template>
       </div>
-    </template>
     </div>
   </template>
   <script>
@@ -96,6 +121,16 @@
         };
       }
 
+      goBack() {
+        this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      selectArea(e) {
+        this.dispatchEvent(new CustomEvent('select-area', { detail: {
+          area: e.model.area,
+        }}));
+      }
+
       _computeAreaEntries() {
         if (!this.areas) {
           return [];
@@ -109,8 +144,10 @@
 
         return !entities ? 0 : Object.keys(entities).length;
       }
+
     }
 
     window.customElements.define(AreaList.is, AreaList);
   </script>
 </dom-module>
+<!-- vim: set ft=javascript : -->

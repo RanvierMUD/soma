@@ -1,0 +1,74 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="area-dashboard">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        height: 52px;
+        background-color: var(--ranvier-green);
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        color: var(--ranvier-light-bg);
+      }
+      .back-btn {
+        cursor: pointer;
+      }
+      .toolbar__title {
+        flex: 1;
+        font-family: 'Saira Condensed';
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        text-indent: -32px;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+    </style>
+
+    <div class="toolbar">
+      <span class="back-btn material-icons" on-tap="goBack">arrow_back</span>
+      <span class="toolbar__title">[[area.manifest.title]]</span>
+    </div>
+
+    <div class="content">
+    </div>
+  </template>
+  <script>
+    class AreaDashboard extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'area-dashboard'; }
+      static get properties() {
+        return {
+          area: {
+            type: Object,
+            notify: true
+          },
+        };
+      }
+
+      goBack() {
+        this.dispatchEvent(new CustomEvent('exit'));
+      }
+    }
+
+    window.customElements.define(AreaDashboard.is, AreaDashboard);
+  </script>
+</dom-module>
+<!-- vim: set ft=javascript : -->
+
