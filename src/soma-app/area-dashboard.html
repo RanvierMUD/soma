@@ -269,7 +269,7 @@
       }
 
       _selectRoom(e) {
-        const room = e.model.room;
+        const room = (e.detail && e.detail.room) || e.model.room;
         this.dispatchEvent(new CustomEvent('edit-room', { detail: {
           room,
         }}));

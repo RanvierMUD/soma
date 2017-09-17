@@ -54,8 +54,47 @@
     .highlighted-cell {
       border-color: var(--ranvier-light-green);
     }
+    .has-npcs, .has-items {
+      height: 6px;
+      width: 6px;
+      position: absolute;
+      top: 4px;
+      border-radius: 50%;
+    }
+    .has-npcs {
+      left: 4px;
+      background-color: #fb0;
+    }
+    .has-items {
+      right: 4px;
+      background-color: #0ef;
+    }
+    .legend {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    .legend-has-npcs, .legend-has-items {
+      height: 6px;
+      width: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .legend-has-npcs {
+      background-color: #fb0;
+    }
+    .legend-has-items {
+      background-color: #0ef;
+      display: inline-block;
+    }
     </style>
 
+    <div class="legend">
+      <div><span class="legend-has-npcs"></span> - Has NPCs</div>
+      <div><span class="legend-has-items"></span> - Has Items</div>
+    </div>
     <table id="map" cellspacing="6"></table>
   </template>
   <script>
@@ -184,11 +223,23 @@
             if (room) {
               td.classList.add('has-room');
               td.title = room.title;
+
+              if (room.npcs && room.npcs.length) {
+                const coordSpan = document.createElement('span');
+                coordSpan.classList.add('has-npcs');
+                td.appendChild(coordSpan);
+              }
+
+              if (room.items && room.items.length) {
+                const coordSpan = document.createElement('span');
+                coordSpan.classList.add('has-items');
+                td.appendChild(coordSpan);
+              }
             }
 
             td.addEventListener('click', e => {
               if (room) {
-                this.dispatchEvent(new CustomEvent('select-room', { model: {
+                this.dispatchEvent(new CustomEvent('select-room', { detail: {
                   room,
                 }}));
               } else {

@@ -179,7 +179,6 @@
       }
 
       _roomSet() {
-        this.dirty = false;
         if (this.room.coordinates) {
           const coords = this.room.coordinates;
           this._coordinates = {
@@ -189,6 +188,7 @@
           };
           this.notifyPath('_coordinates');
         }
+        this.dirty = false;
       }
 
       _updateCoordinates() {
