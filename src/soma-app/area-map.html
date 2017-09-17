@@ -254,6 +254,11 @@
           return;
         }
 
+        if (typeof this.floor === 'string') {
+          this.floor = parseInt(this.floor, 10);
+          return;
+        }
+
         while (this.$.map.hasChildNodes()) {
           this.$.map.removeChild(this.$.map.lastChild);
         }
