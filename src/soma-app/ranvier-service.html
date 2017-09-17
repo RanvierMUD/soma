@@ -1,0 +1,148 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="ranvier-service">
+  <script>
+  const fs = require('fs');
+  const path = require('path');
+  const yaml = require('js-yaml');
+
+  class RanvierService extends Polymer.Element {
+    static get is() { return 'ranvier-service' }
+
+    static get properties() {
+      return {
+        loadMessages: {
+          type: Array,
+          value: _ => [],
+          notify: true,
+        },
+      };
+    }
+
+    loadRepo(repo) {
+      this.loadMessages = [];
+      const bundlesPath = `${repo}/bundles/`;
+
+      const bundles = fs.readdirSync(bundlesPath);
+      let areas = {};
+      for (const bundle of bundles) {
+        const bundlePath = bundlesPath + bundle;
+        if (fs.statSync(bundlePath).isFile() || bundle === '.' || bundle === '..') {
+          continue;
+        }
+
+        const path = `${bundlePath}/areas/`;
+        if (fs.existsSync(path)) {
+          this.loadAreas(areas, bundle, path);
+        }
+      }
+
+      return areas;
+    }
+
+
+    loadAreas(areas, bundle, areasDir) {
+      this.push('loadMessages', `Loading bundle [${bundle}]...`);
+
+      const dirs = fs.readdirSync(areasDir);
+
+      for (const areaDir of dirs) {
+        if (fs.statSync(areasDir + areaDir).isFile()) {
+          continue;
+        }
+
+        const areaPath = areasDir + areaDir;
+        const areaName = path.basename(areaDir);
+        const area = this.loadArea(bundle, areaName, areaPath);
+        areas[areaName] = area;
+      }
+
+      this.push('loadMessages', 'Done');
+    }
+
+
+    /**
+    * @param {string} bundle
+    * @param {string} areaName
+    * @param {string} areaPath
+    */
+    loadArea(bundle, areaName, areaPath) {
+      this.push('loadMessages', `\tLoading area [${areaName}]`);
+
+      const paths = {
+        manifest: areaPath + '/manifest.yml',
+        rooms: areaPath + '/rooms.yml',
+        items: areaPath + '/items.yml',
+        npcs: areaPath + '/npcs.yml',
+      };
+
+      const manifest = this.parseFile(paths.manifest);
+
+      const area = {
+        bundle,
+        path: areaPath,
+        name: areaName,
+        manifest
+      };
+
+      if (fs.existsSync(paths.items)) {
+        area.items = this.loadEntity('items', area, paths.items);
+      }
+
+      if (fs.existsSync(paths.npcs)) {
+        area.npcs = this.loadEntity('npcs', area, paths.npcs);
+      }
+
+      if (fs.existsSync(paths.rooms)) {
+        area.rooms = this.loadEntity('rooms', area, paths.rooms);
+      }
+
+      this.push('loadMessages', `\tDone`);
+      return area;
+    }
+
+    loadEntity(type, area, entitiesFile) {
+      this.push('loadMessages', `\t\tLOAD: ${type}...`);
+
+      // parse the item files
+      const entitiesData = this.parseFile(entitiesFile);
+
+      if (!entitiesData || !entitiesData.length) {
+        return;
+      }
+
+      let entities = {};
+      // set the entity definitions onto the factory
+      entitiesData.forEach(entity => {
+        const entityRef = `${area.name}:${entity.id}`;
+        entities[entityRef] = entity;
+      });
+
+      this.push('loadMessages', `\t\tENDLOAD: ${type}...`);
+      return entities;
+    }
+
+    parseFile(filepath) {
+      if (!fs.existsSync(filepath)) {
+        throw new Error(`File [${filepath}] does not exist!`);
+      }
+
+      const contents = fs.readFileSync(fs.realpathSync(filepath)).toString('utf8');
+      const parsers = {
+        '.yml': yaml.load,
+        '.yaml': yaml.load,
+        '.json': JSON.parse,
+      };
+
+      const ext = path.extname(filepath);
+      if (!(ext in parsers)) {
+        throw new Error(`File [${filepath}] does not have a valid parser!`);
+      }
+
+      return parsers[ext](contents);
+    }
+  }
+
+  window.customElements.define(RanvierService.is, RanvierService);
+  </script>
+</dom-module>

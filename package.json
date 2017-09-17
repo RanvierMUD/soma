@@ -22,6 +22,7 @@
     "electron-packager": "^8.7.2"
   },
   "dependencies": {
-    "electron-store": "^1.2.0"
+    "electron-store": "^1.2.0",
+    "js-yaml": "^3.10.0"
   }
 }

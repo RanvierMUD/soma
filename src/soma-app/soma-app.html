@@ -1,8 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
 
 <link rel="import" href="electron-wrapper.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="ranvier-service.html">
+<link rel="import" href="load-icon.html">
+
+<link rel="import" href="area-list.html">
 
 <dom-module id="soma-app">
   <template>
@@ -27,16 +33,56 @@
         flex: 1;
       }
 
-      .test {
+      .repo-select, .loading-data {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+      }
+
+      load-icon {
+        --load-icon-color: var(--ranvier-dark-green);
+      }
+
+      .load-messages {
+        background-color: rgba(0, 0, 0, 0.1);
+        height: 300px;
+        margin: 16px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 16px;
+        width: 400px;;
+      }
+
+      .load-message {
+        margin-bottom: 8px;
+        font-family: 'Roboto Mono', monospace;
+        tab-size: 2;
+        white-space: pre-wrap;
+        font-size: 12px;
       }
     </style>
 
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="data-page">
-      <soma-area-select data-page="area-select" on-area-select="_selectArea"></soma-area-select>
+      <div class="repo-select" data-page="repo-select">
+        <h3>Specify your Ranvier repo directory</h3>
+        <button class="ranvier-btn" on-tap="_selectRepo">Select Folder</button>
+      </div>
+
+      <div class="loading-data" data-page="loading-data">
+        <h3>Loading game data...</h3>
+        <load-icon></load-icon>
+        <div class="load-messages">
+          <template is="dom-repeat" items="[[_loadMessages]]">
+            <div class="load-message">[[item]]</div>
+          </template>
+        </div>
+      </div>
+
+      <area-list id="areaList" data-page="area-list" areas="{{areas}}"></area-list>
     </iron-pages>
+
+    <ranvier-service id="ranvierService" load-messages="{{_loadMessages}}"></ranvier-service>
   </template>
 
   <script>
@@ -50,12 +96,16 @@
         return {
           page: {
             type: String,
-            value: 'area-select',
+            value: 'repo-select',
           },
 
-          loadedArea: {
+          loadedRepo: {
+            type: String,
+          },
+
+          areas: {
             type: Object,
-            notify: true,
+            value: _ => ({}),
           },
         };
       }
@@ -70,6 +120,38 @@
         //this.$electron.remote.dialog.showMessageBox({ title: 'Test', message: 'Foobar' });
       }
 
+      _selectRepo() {
+        const dialog = this.$electron.remote.dialog;
+        dialog.showOpenDialog({
+          title: 'Select Ranvier repo folder',
+          properties: ['openDirectory'],
+        }, this._repoSelected.bind(this));
+      }
+
+      _repoSelected(filePaths) {
+        if (!filePaths) {
+          return;
+        }
+
+        const repo = filePaths[0];
+        const fs = require('fs');
+        if (!fs.existsSync(`${repo}/bundles`)) {
+          const dialog = this.$electron.remote.dialog;
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Error',
+            message: 'Not a valid Ranvier repo (no bundles directory)',
+            buttons: ['Ok'],
+          });
+          return;
+        }
+
+        this.loadedRepo = repo;
+        this._loadMessages = [];
+        this.page = 'loading-data';
+        this.areas = this.$.ranvierService.loadRepo(this.loadedRepo);
+        this.page = 'area-list';
+      }
     }
 
     window.customElements.define(SomaApp.is, SomaApp);

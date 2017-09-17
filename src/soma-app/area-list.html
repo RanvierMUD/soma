@@ -1,0 +1,116 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="area-list">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      h2, h4 {
+        margin: 0;
+      }
+      h4 {
+        color: #444;
+        font-weight: normal;
+      }
+
+      .area {
+        width: 200px;
+        margin-bottom: 12px;
+        border: 2px solid var(--ranvier-dark-green);
+        border-radius: 2px;
+        cursor: pointer;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      .area:hover {
+        top: -2px;
+        box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 10px 0 rgba(0, 0, 0, 0.12),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.4);
+      }
+      .area:focus {
+        outline: none;
+      }
+      .area:active {
+        top: 1px;
+      }
+
+      .area__title {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        background-color: var(--ranvier-green);
+        color: var(--ranvier-light-bg);
+        padding: 8px;
+        text-align: center;
+      }
+
+      .area__stats {
+        padding: 8px;
+      }
+      .area__stats__stat {
+        white-space: pre-wrap;
+        font-family: 'Roboto Mono';
+      }
+    </style>
+    <h2>Loaded Areas</h2>
+    <h4>Select area to work on</h4>
+    <div class="area-list">
+    <template is="dom-repeat" items="[[_areaEntries]]" as="area">
+      <div class="area" on-tap="selectArea">
+        <div class="area__title">[[area.manifest.title]]</div>
+        <div class="area__stats">
+          <div class="area__stats__stat">Items: [[_getAreaStat(area.name, 'items')]]</div>
+          <div class="area__stats__stat">NPCs:  [[_getAreaStat(area.name, 'npcs')]]</div>
+          <div class="area__stats__stat">Rooms: [[_getAreaStat(area.name, 'rooms')]]</div>
+        </div>
+      </div>
+    </template>
+    </div>
+  </template>
+  <script>
+    class AreaList extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'area-list'; }
+      static get properties() {
+        return {
+          areas: {
+            type: Object,
+            notify: true
+          },
+
+          _areaEntries: {
+            type: Array,
+            computed: '_computeAreaEntries(areas.*)',
+          },
+        };
+      }
+
+      _computeAreaEntries() {
+        if (!this.areas) {
+          return [];
+        }
+
+        return Object.values(this.areas);
+      }
+
+      _getAreaStat(areaName, type) {
+        const entities = this.areas[areaName][type];
+
+        return !entities ? 0 : Object.keys(entities).length;
+      }
+    }
+
+    window.customElements.define(AreaList.is, AreaList);
+  </script>
+</dom-module>
