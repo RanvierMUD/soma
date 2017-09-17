@@ -37,17 +37,18 @@
     createItem() {
       return {
         id: null,
-        name: '',
-        description: '',
-        script: '',
-        items: [],
-        maxItems: Infinity,
         closeable: false,
         closed: false,
+        description: '',
+        items: [],
+        keywords: [],
         locked: false,
         lockedBy: null,
-        type: 'OBJECT',
+        maxItems: Infinity,
+        name: '',
         properties: {},
+        script: '',
+        type: 'OBJECT',
       };
     }
 
