@@ -300,6 +300,13 @@
         }}));
       }
 
+      _createItem() {
+        this.dispatchEvent(new CustomEvent('create-item', { detail: {
+          item: null,
+        }}));
+      }
+
+
       _getAreaEntities(area, type) {
         return (this.area && this.area[type]) ? Object.values(this.area[type]) : [];
       }

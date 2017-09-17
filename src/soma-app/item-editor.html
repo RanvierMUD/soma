@@ -179,7 +179,7 @@
 
           allItems: {
             type: Array,
-            computed: '_computeAllEntities("items", "name", areas.*.items.*)',
+            computed: '_computeAllEntities("items", "name", areas.*)',
           },
 
           _itemTypes: {
@@ -251,6 +251,44 @@
         return items;
       }
 
+      _addItem() {
+        this._addEntity('items', _ => ({ id: null }));
+      }
+
+      _addEntity(type, defaultFn) {
+        const val = defaultFn();
+        if (!this.item[type]) {
+          this.set(`item.${type}`, []);
+        }
+
+        const entities = this.item[type];
+        // prevent adding an additional entity if they haven't filled in the last one
+        if (entities.length && JSON.stringify(entities[entities.length - 1]) === JSON.stringify(val)) {
+          return;
+        }
+
+        this.push(`item.${type}`, val);
+      }
+
+      _itemValueUpdated(e) {
+        this._updateEntityValue('items', 'id', e);
+      }
+
+      _updateEntityValue(type, path, e) {
+        const index = e.model.index;
+        const value = e.currentTarget.value;
+        if (value === '') {
+          this.splice(`item.${type}`, index, 1);
+          return;
+        }
+
+        if (typeof this.item[type][index] === 'string') {
+          this.set(`item.${type}.${index}`, value);
+        } else {
+          this.set(`item.${type}.${index}.${path}`, value);
+        }
+      }
+
       goBack() {
         if (this.dirty) {
           if (window.confirm("You have unsaved changes, are you sure?")) {
@@ -271,10 +309,18 @@
           return;
         }
 
-        this.set('item.name', (this.item.name && this.item.name.trim()) || '');
+        // clear bad values
+        if (this.item.items) {
+          this.set('item.items', this.item.items.filter(item => {
+            return typeof item === 'string' ? true : !!item.id;
+          }));
+        }
 
-        if (!this.item.name) {
-          window.alert("Items must have a name");
+        this.set('item.name', (this.item.name && this.item.name.trim()) || '');
+        this.set('item.roomDesc', (this.item.roomDesc && this.item.roomDesc.trim()) || '');
+
+        if (!this.item.name || !this.item.roomDesc) {
+          window.alert("Items must have a name and a room description");
           return;
         }
 

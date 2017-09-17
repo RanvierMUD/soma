@@ -281,6 +281,10 @@
         const areaName = this.activeArea.name;
         const ref = areaName + ':' + entity.id;
 
+        if (!this.areas[areaName][type]) {
+          this.set(`areas.${areaName}.${type}`, {});
+        }
+
         if (editingId) {
           if (editingId !== entity.id) {
             delete this.areas[areaName][type][`${areaName}:${editingId}`];

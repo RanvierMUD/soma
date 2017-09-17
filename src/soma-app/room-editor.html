@@ -222,17 +222,17 @@
 
           allItems: {
             type: Array,
-            computed: '_computeAllEntities("items", "name", areas.*.items.*)',
+            computed: '_computeAllEntities("items", "name", areas.*)',
           },
 
           allNpcs: {
             type: Array,
-            computed: '_computeAllEntities("npcs", "name", areas.*.npcs.*)',
+            computed: '_computeAllEntities("npcs", "name", areas.*)',
           },
 
           allRooms: {
             type: Array,
-            computed: '_computeAllEntities("rooms", "title", areas.*.rooms.*)',
+            computed: '_computeAllEntities("rooms", "title", areas.*)',
           },
 
           room: {
@@ -355,7 +355,6 @@
       _exitDirectionUpdated(e) {
         this._updateEntityValue('exits', 'direction', e);
       }
-
 
       _updateEntityValue(type, path, e) {
         const index = e.model.index;
