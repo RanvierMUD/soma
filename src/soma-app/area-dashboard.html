@@ -265,7 +265,9 @@
       }
 
       _createRoom() {
-        this.dispatchEvent(new CustomEvent('create-room'));
+        this.dispatchEvent(new CustomEvent('create-room', { detail: {
+          room: null,
+        }}));
       }
 
       _selectRoom(e) {
@@ -287,7 +289,7 @@
       }
 
       _getAreaEntities(area, type) {
-        return this.area[type] ? Object.values(this.area[type]) : [];
+        return (this.area && this.area[type]) ? Object.values(this.area[type]) : [];
       }
     }
 

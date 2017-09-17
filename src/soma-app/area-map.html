@@ -155,6 +155,10 @@
       }
 
       _computeFloors() {
+        if (!this.rooms) {
+          return null;
+        }
+
         const rooms = Object.values(this.rooms);
         this.lowX = 0;
         this.highX = 0;
@@ -212,9 +216,9 @@
           this.$.map.removeChild(this.$.map.lastChild);
         }
 
-        for(let y = this.highY; y >= this.lowY; y--) {
+        for(let y = this.highY + 1; y >= this.lowY - 1; y--) {
           const tr = document.createElement('tr');
-          for (let x = this.lowX; x <= this.highX; x++) {
+          for (let x = this.lowX - 1; x <= this.highX + 1; x++) {
             const floor = this.floors[this.floor];
             const room = floor && floor[y] && floor[y][x];
 

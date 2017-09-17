@@ -401,6 +401,19 @@
           }));
         }
 
+        if (!this.room.id || this.room.id.includes(':')) {
+          window.alert("Rooms must have an id and it cannot contain ':'");
+          return;
+        }
+
+        this.set('room.title', (this.room.title && this.room.title.trim()) || '');
+
+        if (!this.room.title) {
+          window.alert("Rooms must have a title");
+          return;
+        }
+
+        this.dirty = false;
         this.dispatchEvent(new CustomEvent('save', { detail: {
           room: this.room,
         }}));

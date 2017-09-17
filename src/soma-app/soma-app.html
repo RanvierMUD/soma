@@ -132,10 +132,12 @@
           areas: {
             type: Object,
             value: _ => ({}),
+            notify: true,
           },
 
           activeArea: {
             type: Object,
+            notify: true,
           },
         };
       }
@@ -210,9 +212,23 @@
         this.page = 'area-list';
       }
 
-      _roomSave(e) {
-        // TODO: add room to areas list, save area rooms file
-        console.log('Save room');
+      _saveRoom(e) {
+        const areaName = this.activeArea.name;
+        const room = e.detail.room;
+        const ref = areaName + ':' + room.id;
+
+        if (this._editingRoomId) {
+          if (this._editingRoomId !== room.id) {
+            delete this.areas[this.activeArea.name].rooms[`${areaName}:${this._editingRoomId}`];
+            this.notifyPath(`areas.${areaName}.rooms.${areaName}:${this._editingRoomId}`, undefined);
+          }
+        }
+
+        this.set(`areas.${this.activeArea.name}.rooms.${ref}`, room);
+
+        // trigger redraw
+        this.activeArea = null;
+        this.activeArea = this.areas[areaName];
       }
 
       _exitRoomEditor() {
