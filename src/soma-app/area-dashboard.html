@@ -4,6 +4,8 @@
 
 <link rel="import" href="shared-styles.html">
 
+<link rel="import" href="area-map.html">
+
 <dom-module id="area-dashboard">
   <template>
     <style include="shared-styles">
@@ -40,6 +42,95 @@
         justify-content: center;
       }
 
+      .map-container {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .map-toolbar {
+        height: 32px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.1);
+        color: var(--ranvier-dark-green);
+        padding: 0 8px;
+      }
+      .map-toolbar__title {
+        flex: 1;
+        font-family: 'Saira Condensed';
+        font-size: 22px;
+        text-align: center;
+        text-indent: 80px;
+        font-weight: bold;
+      }
+      .map-controls__floor-label {
+        margin-right: 8px;
+      }
+      #floorInput {
+        width: 40px;
+        text-align: center;
+        padding: 0;
+        height: 28px;
+      }
+
+      area-map {
+        flex: 1;
+        width: 100%;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+        box-shadow: inset 0px -2px 4px rgba(0, 0, 0, 0.3), inset 0px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .entities-lists {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+      }
+
+      .entity-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--ranvier-dark-green);
+      }
+      .entity-list:last-child {
+        border-right: none;
+      }
+      .entity-list__title {
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--ranvier-green);
+        color: var(--ranvier-light-bg);
+        font-weight: bold;
+        font-family: 'Saira Condensed';
+      }
+      .entity-list__content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .entity-list__item {
+        width: 100%;
+        height: 52px;
+        padding: 8px;
+        border-bottom: 1px solid #777;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .entity-list__item:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+      .entity-list__item__id {
+        font-size: 12px;
+        font-weight: normal;
+        font-style: italic;
+      }
     </style>
 
     <div class="toolbar">
@@ -48,6 +139,51 @@
     </div>
 
     <div class="content">
+      <div class="map-container">
+        <div class="map-toolbar">
+          <span class="map-toolbar__title">Map</span>
+          <div class="map-controls">
+            <label class="map-controls__floor-label" for="floorInput">Floor</label>
+            <input id="floorInput" type="number" value="{{floor::input}}" min="-999" max="999"></input>
+          </div>
+        </div>
+      <area-map rooms="[[area.rooms]]" floor="[[floor]]" on-select-cell="_selectMapCell"></area-map>
+    </div>
+
+    <div class="entities-lists">
+      <div class="entity-list">
+        <div class="entity-list__title">Rooms</div>
+        <div class="entity-list__content">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'rooms', area.rooms.*)]]" as="room">
+            <div class="entity-list__item">
+              [[room.title]]
+              <div class="entity-list__item__id">[[room.id]]</div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="entity-list">
+        <div class="entity-list__title">Items</div>
+        <div class="entity-list__content">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'items', area.items.*)]]" as="item">
+            <div class="entity-list__item">
+              [[item.title]]
+              <div class="entity-list__item__id">[[item.id]]</div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="entity-list">
+        <div class="entity-list__title">NPCs</div>
+        <div class="entity-list__content">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs', area.npcs.*)]]" as="npc">
+            <div class="entity-list__item">
+              [[npc.name]]
+              <div class="entity-list__item__id">[[npc.id]]</div>
+            </div>
+          </template>
+        </div>
+      </div>
     </div>
   </template>
   <script>
@@ -59,11 +195,20 @@
             type: Object,
             notify: true
           },
+
+          floor: {
+            type: Number,
+            value: 0
+          }
         };
       }
 
       goBack() {
         this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      _getAreaEntities(area, type) {
+        return this.area[type] ? Object.values(this.area[type]) : [];
       }
     }
 
@@ -71,4 +216,3 @@
   </script>
 </dom-module>
 <!-- vim: set ft=javascript : -->
-

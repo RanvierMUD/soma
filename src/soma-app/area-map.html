@@ -1,0 +1,168 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="area-map">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    tr {
+      height: 52px;
+    }
+    td {
+      border: 1px solid #333;
+      min-width: 52px;
+      cursor: pointer;
+      position: relative;
+      padding: 4px;
+      text-align: center;
+    }
+    .has-room {
+      background-color: var(--ranvier-green);
+    }
+    .cell-coords {
+      font-size: 12px;
+    }
+    .has-room .cell-coords {
+      color: var(--ranvier-light-bg);
+    }
+    </style>
+
+    <table id="map"></table>
+  </template>
+  <script>
+    class AreaMap extends Polymer.Element {
+      static get is() { return 'area-map'; }
+
+      static get properties() {
+        return {
+          rooms: {
+            type: Object,
+          },
+
+          floor: {
+            type: Number,
+            value: 0,
+          },
+
+          floors: {
+            type: Object,
+            computed: '_computeFloors(rooms.*)',
+          },
+
+          mapSizeX: {
+            type: Number,
+            value: 10,
+          },
+
+          mapSizeY: {
+            type: Number,
+            value: 10,
+          }
+        };
+      }
+
+      static get observers() {
+        return [
+          'renderMap(floors.*, floor)',
+        ];
+      }
+
+      _computeFloors() {
+        const rooms = Object.values(this.rooms);
+        this.lowX = 0;
+        this.highX = 0;
+        this.lowY = 0;
+        this.highY = 0;
+        this.lowZ = 0;
+        this.highZ = 0;
+
+        let floors = {};
+
+        for (const room of rooms) {
+          if (!room.coordinates) {
+            continue;
+          }
+
+          const [ x, y, z ] = room.coordinates;
+          if (x < this.lowX) {
+            this.lowX = x;
+          }
+
+          if (x > this.highX) {
+            this.highX = x;
+          }
+
+          if (y < this.lowY) {
+            this.lowY = y;
+          }
+
+          if (y > this.highY) {
+            this.highY = y;
+          }
+
+          if (!floors[z]) {
+            floors[z] = {};
+          }
+
+          if (!floors[z][y]) {
+            floors[z][y] = [];
+          }
+
+          floors[z][y][x] = room;
+        }
+
+        this.mapSizeX = Math.abs(this.lowX) + Math.abs(this.highX);
+        this.mapSizeY = Math.abs(this.lowY) + Math.abs(this.highY);
+        return floors;
+      }
+
+      renderMap() {
+        if (!this.rooms) {
+          return;
+        }
+
+        while (this.$.map.hasChildNodes()) {
+          this.$.map.removeChild(this.$.map.lastChild);
+        }
+
+        for(let y = this.highY; y >= this.lowY; y--) {
+          const tr = document.createElement('tr');
+          for (let x = this.lowX; x <= this.highX; x++) {
+            const td = document.createElement('td');
+            td.addEventListener('click', e => {
+              this._clickCell(x, y, e);
+            });
+
+            const floor = this.floors[this.floor];
+            const room = floor && floor[y] && floor[y][x];
+            if (room) {
+              td.classList.add('has-room');
+              td.title = room.title;
+            }
+
+            const coordSpan = document.createElement('span');
+            coordSpan.classList.add('cell-coords');
+            coordSpan.innerHTML = `${x}, ${y}`;
+            td.appendChild(coordSpan);
+
+            tr.appendChild(td);
+          }
+          this.$.map.appendChild(tr);
+        }
+      }
+
+      _clickCell(x, y, e) {
+        debugger;
+      }
+    }
+
+    window.customElements.define(AreaMap.is, AreaMap);
+  </script>
+</dom-module>
+<!-- vim: set ft=javascript : -->
