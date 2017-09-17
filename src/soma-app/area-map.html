@@ -157,6 +157,14 @@
       }
 
       highlightItem(item) {
+        this._highlightEntity('items', item);
+      }
+
+      highlightNpc(item) {
+        this._highlightEntity('npcs', item);
+      }
+
+      _highlightEntity(type, entity) {
         const previousCells = this.shadowRoot.querySelectorAll('.highlighted-cell');
         if (previousCells.length) {
           for (const previousCell of previousCells) {
@@ -164,12 +172,12 @@
           }
         }
 
-        if (!item) {
+        if (!entity) {
           return;
         }
 
         for (const room of Object.values(this.rooms)) {
-          if (!room.coordinates || !room.items) {
+          if (!room.coordinates || !room[type]) {
             continue;
           }
 
@@ -179,9 +187,9 @@
             continue;
           }
 
-          for (const roomItem of room.items) {
-            const id = typeof roomItem === 'string' ? roomItem : roomItem.id;
-            if (id === item) {
+          for (const roomEntity of room[type]) {
+            const id = typeof roomEntity === 'string' ? roomEntity : roomEntity.id;
+            if (id === entity) {
               cell.classList.add('highlighted-cell');
             }
           }

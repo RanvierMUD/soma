@@ -213,7 +213,12 @@
         </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs', area.npcs.*)]]" as="npc">
-            <div class="entity-list__item" on-tap="_selectNpc">
+            <div
+              class="entity-list__item"
+              on-tap="_selectNpc"
+              on-mouseover="_hoverNpc"
+              on-mouseout="_clearHoverNpc"
+            >
               [[npc.name]]
               <div class="entity-list__item__id">[[npc.id]]</div>
             </div>
@@ -261,6 +266,7 @@
         }
       }
 
+      /* rooms ((( */
       _mapCreateRoom(e) {
         this.dispatchEvent(new CustomEvent('create-room', { detail: {
           room: {
@@ -292,7 +298,9 @@
       _clearHoverRoom() {
         this.$.areaMap.highlightRoom(null);
       }
+      /* ))) */
 
+      /* items ((( */
       _selectItem(e) {
         const item = (e.detail && e.detail.item) || e.model.item;
         this.dispatchEvent(new CustomEvent('edit-item', { detail: {
@@ -314,6 +322,31 @@
       _clearHoverItem() {
         this.$.areaMap.highlightItem(null);
       }
+      /* ))) */
+
+      /* npcs ((( */
+      _selectNpc(e) {
+        const npc = (e.detail && e.detail.npc) || e.model.npc;
+        this.dispatchEvent(new CustomEvent('edit-npc', { detail: {
+          npc,
+        }}));
+      }
+
+      _createNpc() {
+        this.dispatchEvent(new CustomEvent('create-npc', { detail: {
+          npc: null,
+        }}));
+      }
+
+      _hoverNpc(e) {
+        const npc = e.model.npc;
+        this.$.areaMap.highlightNpc(`${this.area.name}:${npc.id}`);
+      }
+
+      _clearHoverNpc() {
+        this.$.areaMap.highlightNpc(null);
+      }
+      /* ))) */
 
       _getAreaEntities(area, type) {
         return (this.area && this.area[type]) ? Object.values(this.area[type]) : [];
@@ -323,4 +356,4 @@
     window.customElements.define(AreaDashboard.is, AreaDashboard);
   </script>
 </dom-module>
-<!-- vim: set ft=javascript : -->
+<!-- vim: set ft=javascript fdm=marker fmr=(((,))) : -->

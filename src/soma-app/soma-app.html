@@ -12,6 +12,7 @@
 <link rel="import" href="area-dashboard.html">
 <link rel="import" href="room-editor.html">
 <link rel="import" href="item-editor.html">
+<link rel="import" href="npc-editor.html">
 
 <dom-module id="soma-app">
   <template>
@@ -99,6 +100,8 @@
         on-create-room="_createRoom"
         on-edit-item="_editItem"
         on-create-item="_createItem"
+        on-edit-npc="_editNpc"
+        on-create-npc="_createNpc"
         on-exit="_exitAreaDashboard"
       ></area-dashboard>
 
@@ -121,6 +124,16 @@
         on-delete-item="_deleteItem"
         on-exit="_exitItemEditor"
       ></item-editor>
+
+      <npc-editor
+        id="npcEditor"
+        data-page="npc-editor"
+        area="[[activeArea]]"
+        areas="[[areas]]"
+        on-save="_saveNpc"
+        on-delete-npc="_deleteNpc"
+        on-exit="_exitNpcEditor"
+      ></npc-editor>
     </iron-pages>
     <!-- ))) -->
 
@@ -242,6 +255,20 @@
         this.page = 'item-editor';
       }
 
+      _createNpc(e) {
+        const defaults = e.detail.npc || {};
+        const npc = Object.assign(this.$.ranvierService.createNpc(), defaults);
+        this._editNpc({ detail: { npc }});
+      }
+
+      _editNpc(e) {
+        const npc = e.detail.npc;
+        this._editingNpcId = npc.id;
+        // edit a copy to prevent by-ref weirdness
+        this.$.npcEditor.npc = JSON.parse(JSON.stringify(npc));
+        this.page = 'npc-editor';
+      }
+
       _exitAreaDashboard() {
         this.page = 'area-list';
       }
@@ -273,6 +300,21 @@
 
       _exitItemEditor() {
         this._editingItemId = null;
+        this.page = 'area-dashboard';
+      }
+      /* ))) */
+
+      /* npc editor ((( */
+      _saveNpc(e) {
+        this._saveEntity('npcs', e.detail.npc, this._editingNpcId);
+      }
+
+      _deleteNpc() {
+        this._deleteEntity('npcs', this._editingNpcId);
+      }
+
+      _exitNpcEditor() {
+        this._editingNpcId = null;
         this.page = 'area-dashboard';
       }
       /* ))) */
