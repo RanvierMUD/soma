@@ -9,6 +9,13 @@
       align-items: center;
       justify-content: center;
       overflow: auto;
+      position: relative;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      margin: 12px;
     }
 
     tr {
@@ -30,6 +37,9 @@
     }
     .has-room .cell-coords {
       color: var(--ranvier-light-bg);
+    }
+    .highlighted-cell {
+      outline: 2px solid var(--ranvier-dark-green);
     }
     </style>
 
@@ -71,6 +81,25 @@
         return [
           'renderMap(floors.*, floor)',
         ];
+      }
+
+      highlightRoom(room) {
+        const previousCell = this.shadowRoot.querySelector('.highlighted-cell');
+        if (previousCell) {
+          previousCell.classList.remove('highlighted-cell');
+        }
+
+        if (!room) {
+          return;
+        }
+
+        const [ x, y, z ] = room.coordinates;
+        if (this.floor !== z) {
+          return;
+        }
+
+        const cell = this.shadowRoot.querySelector(`#room-${x}-${y}-${z}`);
+        cell.classList.add('highlighted-cell');
       }
 
       _computeFloors() {
@@ -134,17 +163,27 @@
         for(let y = this.highY; y >= this.lowY; y--) {
           const tr = document.createElement('tr');
           for (let x = this.lowX; x <= this.highX; x++) {
-            const td = document.createElement('td');
-            td.addEventListener('click', e => {
-              this._clickCell(x, y, e);
-            });
-
             const floor = this.floors[this.floor];
             const room = floor && floor[y] && floor[y][x];
+
+            const td = document.createElement('td');
+            td.id = `room-${x}-${y}-${this.floor}`;
             if (room) {
               td.classList.add('has-room');
               td.title = room.title;
             }
+
+            td.addEventListener('click', e => {
+              if (room) {
+                this.dispatchEvent(new CustomEvent('select-room', { detail: {
+                  room,
+                }}));
+              } else {
+                this.dispatchEvent(new CustomEvent('create-room', { detail: {
+                  coords: [x, y, this.floor],
+                }}));
+              }
+            });
 
             const coordSpan = document.createElement('span');
             coordSpan.classList.add('cell-coords');
@@ -155,10 +194,6 @@
           }
           this.$.map.appendChild(tr);
         }
-      }
-
-      _clickCell(x, y, e) {
-        debugger;
       }
     }
 

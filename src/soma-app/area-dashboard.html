@@ -14,26 +14,6 @@
         flex-direction: column;
       }
 
-      .toolbar {
-        height: 52px;
-        background-color: var(--ranvier-green);
-        display: flex;
-        align-items: center;
-        padding: 0 8px;
-        color: var(--ranvier-light-bg);
-      }
-      .back-btn {
-        cursor: pointer;
-      }
-      .toolbar__title {
-        flex: 1;
-        font-family: 'Saira Condensed';
-        font-size: 24px;
-        font-weight: bold;
-        text-align: center;
-        text-indent: -32px;
-      }
-
       .content {
         flex: 1;
         display: flex;
@@ -99,7 +79,7 @@
       .entity-list:last-child {
         border-right: none;
       }
-      .entity-list__title {
+      .entity-list__toolbar {
         height: 32px;
         display: flex;
         align-items: center;
@@ -108,6 +88,13 @@
         color: var(--ranvier-light-bg);
         font-weight: bold;
         font-family: 'Saira Condensed';
+        padding: 0 8px;
+      }
+      .entity-list__toolbar__title {
+        flex: 1;
+        text-align: center;
+        text-indent: 32px;
+        text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
       }
       .entity-list__content {
         flex: 1;
@@ -147,39 +134,66 @@
             <input id="floorInput" type="number" value="{{floor::input}}" min="-999" max="999"></input>
           </div>
         </div>
-      <area-map rooms="[[area.rooms]]" floor="[[floor]]" on-select-cell="_selectMapCell"></area-map>
+
+        <area-map
+          id="areaMap"
+          rooms="[[area.rooms]]"
+          floor="[[floor]]"
+          on-select-room="_mapSelectRoom"
+          on-create-room="_mapCreateRoom"
+        ></area-map>
     </div>
 
     <div class="entities-lists">
+      <!-- room list -->
       <div class="entity-list">
-        <div class="entity-list__title">Rooms</div>
+        <div class="entity-list__toolbar">
+          <span class="entity-list__toolbar__title">Rooms</span>
+          <span class="material-icons add-btn" on-tap="_createRoom">add</span>
+        </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'rooms', area.rooms.*)]]" as="room">
-            <div class="entity-list__item">
+            <div
+              class="entity-list__item"
+              on-mouseover="_hoverRoom"
+              on-mouseout="_clearHoverRoom"
+            >
               [[room.title]]
-              <div class="entity-list__item__id">[[room.id]]</div>
+              <div class="entity-list__item__id" on-tap="_selectRoom">
+                [[room.id]]
+              </div>
             </div>
           </template>
         </div>
       </div>
+
+      <!-- item list -->
       <div class="entity-list">
-        <div class="entity-list__title">Items</div>
+        <div class="entity-list__toolbar">
+          <span class="entity-list__toolbar__title">Items</span>
+          <span class="material-icons add-btn" on-tap="_createItem">add</span>
+        </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'items', area.items.*)]]" as="item">
             <div class="entity-list__item">
               [[item.title]]
-              <div class="entity-list__item__id">[[item.id]]</div>
+              <div class="entity-list__item__id" on-tap="_selectItem">[[item.id]]</div>
             </div>
           </template>
         </div>
       </div>
+
+      <!-- npc list -->
       <div class="entity-list">
-        <div class="entity-list__title">NPCs</div>
+        <div class="entity-list__toolbar">
+          <span class="entity-list__toolbar__title">NPCs</span>
+          <span class="material-icons add-btn" on-tap="_createNpc">add</span>
+        </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs', area.npcs.*)]]" as="npc">
             <div class="entity-list__item">
               [[npc.name]]
-              <div class="entity-list__item__id">[[npc.id]]</div>
+              <div class="entity-list__item__id" on-tap="_selectNpc">[[npc.id]]</div>
             </div>
           </template>
         </div>
@@ -205,6 +219,31 @@
 
       goBack() {
         this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      _mapSelectRoom(e) {
+        const room = e.detail.room;
+        // TODO
+      }
+
+      _mapCreateRoom(e) {
+        const coords = e.detail.coords;
+        // TODO
+      }
+
+      _createRoom() {
+        // TODO
+      }
+
+      _hoverRoom(e) {
+        const room = e.model.room;
+        if (room.coordinates) {
+          this.$.areaMap.highlightRoom(room);
+        }
+      }
+
+      _clearHoverRoom() {
+        this.$.areaMap.highlightRoom(null);
       }
 
       _getAreaEntities(area, type) {
