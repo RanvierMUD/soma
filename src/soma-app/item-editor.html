@@ -99,6 +99,9 @@
       ></vaadin-combo-box>
 
       <paper-input id="itemName" label="Name" value="{{item.name}}"></paper-input>
+
+      <paper-input id="itemKeywords" label="Keywords" value="[[_itemKeywords]]" on-change="_updateKeywords"></paper-input>
+
       <paper-textarea id="itemGroundString" label="Room Description" value="{{item.roomDesc}}" always-float-label></paper-textarea>
       <paper-textarea id="itemDesc" label="Long Description" value="{{item.description}}" always-float-label></paper-textarea>
 
@@ -182,6 +185,10 @@
             computed: '_computeAllEntities("items", "name", areas.*)',
           },
 
+          _itemKeywords: {
+            type: String,
+          },
+
           _itemTypes: {
             type: Array,
             value: _ => ([
@@ -216,9 +223,16 @@
           return;
         }
 
+        this._itemKeywords = this.item.keywords.join(', ');
+
         this.set('item.closeable', this.item.closed || this.item.locked || this.item.closeable);
 
         this.dirty = false;
+      }
+
+      _updateKeywords(e) {
+        const value = e.currentTarget.value;
+        this.set('item.keywords', value.split(',').map(keyword => keyword.trim()).filter(keyword => !!keyword));
       }
 
       _getItemEntities(type) {
