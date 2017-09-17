@@ -11,10 +11,11 @@
 <link rel="import" href="area-list.html">
 <link rel="import" href="area-dashboard.html">
 <link rel="import" href="room-editor.html">
+<link rel="import" href="item-editor.html">
 
 <dom-module id="soma-app">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles">/* ((( */
       :host {
         display: block;
         background-color: var(--ranvier-light-bg);
@@ -63,8 +64,9 @@
         white-space: pre-wrap;
         font-size: 12px;
       }
-    </style>
+    /* ))) */</style>
 
+    <!-- pages ((( -->
     <iron-pages id="pages" selected="[[page]]" attr-for-selected="data-page">
       <div class="repo-select" data-page="repo-select">
         <h3>Specify your Ranvier repo directory</h3>
@@ -95,6 +97,8 @@
         area="{{activeArea}}"
         on-edit-room="_editRoom"
         on-create-room="_createRoom"
+        on-edit-item="_editItem"
+        on-create-item="_createItem"
         on-exit="_exitAreaDashboard"
       ></area-dashboard>
 
@@ -107,7 +111,18 @@
         on-delete-room="_deleteRoom"
         on-exit="_exitRoomEditor"
       ></room-editor>
+
+      <item-editor
+        id="itemEditor"
+        data-page="item-editor"
+        area="[[activeArea]]"
+        areas="[[areas]]"
+        on-save="_saveItem"
+        on-delete-item="_deleteItem"
+        on-exit="_exitItemEditor"
+      ></item-editor>
     </iron-pages>
+    <!-- ))) -->
 
     <ranvier-service id="ranvierService" load-messages="{{_loadMessages}}"></ranvier-service>
   </template>
@@ -119,7 +134,7 @@
      */
     class SomaApp extends Polymer.GestureEventListeners(Soma.ElectronWrapper(Polymer.Element)) {
       static get is() { return 'soma-app'; }
-      static get properties() {
+      static get properties() { /* ((( */
         return {
           page: {
             type: String,
@@ -142,6 +157,7 @@
           },
         };
       }
+      /* ))) */
 
       ready() {
         super.ready();
@@ -149,10 +165,9 @@
           var Store = require('electron-store');
           this.store = new Store;
         }
-
-        //this.$electron.remote.dialog.showMessageBox({ title: 'Test', message: 'Foobar' });
       }
 
+      /* repo select ((( */
       _selectRepo() {
         const dialog = this.$electron.remote.dialog;
         dialog.showOpenDialog({
@@ -185,16 +200,20 @@
         this.areas = this.$.ranvierService.loadRepo(this.loadedRepo);
         this.page = 'area-list';
       }
+      /* ))) */
 
-      _exitAreaList() {
-        this.page = 'repo-select';
-      }
-
+      /* area list ((( */
       _areaListSelect(e) {
         this.activeArea = e.detail.area;
         this.page = 'area-dashboard';
       }
 
+      _exitAreaList() {
+        this.page = 'repo-select';
+      }
+      /* ))) */
+
+      /*  dashboard handlers ((( */
       _createRoom(e) {
         const defaults = e.detail.room || {};
         const room = Object.assign(this.$.ranvierService.createRoom(), defaults);
@@ -209,69 +228,108 @@
         this.page = 'room-editor';
       }
 
+      _createItem(e) {
+        const defaults = e.detail.item || {};
+        const item = Object.assign(this.$.ranvierService.createItem(), defaults);
+        this._editItem({ detail: { item }});
+      }
+
+      _editItem(e) {
+        const item = e.detail.item;
+        this._editingItemId = item.id;
+        // edit a copy to prevent by-ref weirdness
+        this.$.itemEditor.item = JSON.parse(JSON.stringify(item));
+        this.page = 'item-editor';
+      }
+
       _exitAreaDashboard() {
         this.page = 'area-list';
       }
+      /* ))) */
 
+      /* room editor ((( */
       _saveRoom(e) {
-        const areaName = this.activeArea.name;
-        const room = e.detail.room;
-        const ref = areaName + ':' + room.id;
-
-        if (this._editingRoomId) {
-          if (this._editingRoomId !== room.id) {
-            delete this.areas[areaName].rooms[`${areaName}:${this._editingRoomId}`];
-            this.notifyPath(`areas.${areaName}.rooms.${areaName}:${this._editingRoomId}`, undefined);
-          }
-        }
-
-        this.set(`areas.${this.activeArea.name}.rooms.${ref}`, room);
-
-        // trigger redraw
-        this.activeArea = null;
-        this.activeArea = this.areas[areaName];
-
-        this.$.ranvierService.saveAreaEntityData(
-          this.activeArea,
-          'rooms',
-          Object.values(this.activeArea.rooms)
-        );
-        window.alert('Area saved');
+        this._saveEntity('rooms', e.detail.room, this._editingRoomId);
       }
 
       _deleteRoom() {
-        const areaName = this.activeArea.name;
-
-        if (!this._editingRoomId) {
-          this.page = 'area-dashboard';
-          window.alert('Room deleted');
-          this.$.roomEditor.room = null;
-          return;
-        }
-
-        delete this.areas[this.activeArea.name].rooms[`${areaName}:${this._editingRoomId}`];
-        this.notifyPath(`areas.${areaName}.rooms.${areaName}:${this._editingRoomId}`, undefined);
-
-        // trigger redraw
-        this.activeArea = null;
-        this.activeArea = this.areas[areaName];
-
-        this.$.ranvierService.saveAreaEntityData(
-          this.activeArea,
-          'rooms',
-          Object.values(this.activeArea.rooms)
-        );
-        this.page = 'area-dashboard';
-        window.alert('Room deleted');
+        this._deleteEntity('rooms', this._editingRoomId);
       }
 
       _exitRoomEditor() {
         this._editingRoomId = null;
         this.page = 'area-dashboard';
       }
+      /* ))) */
+
+      /* item editor ((( */
+      _saveItem(e) {
+        this._saveEntity('items', e.detail.item, this._editingItemId);
+      }
+
+      _deleteItem() {
+        this._deleteEntity('items', this._editingItemId);
+      }
+
+      _exitItemEditor() {
+        this._editingItemId = null;
+        this.page = 'area-dashboard';
+      }
+      /* ))) */
+
+      _saveEntity(type, entity, editingId) {
+        const areaName = this.activeArea.name;
+        const ref = areaName + ':' + entity.id;
+
+        if (editingId) {
+          if (editingId !== entity.id) {
+            delete this.areas[areaName][type][`${areaName}:${editingId}`];
+            this.notifyPath(`areas.${areaName}.${type}.${areaName}:${editingId}`, undefined);
+          }
+        }
+
+        this.set(`areas.${areaName}.${type}.${ref}`, entity);
+
+        // trigger redraw
+        this.activeArea = null;
+        this.activeArea = this.areas[areaName];
+
+        this.$.ranvierService.saveAreaEntityData(
+          this.activeArea,
+          type,
+          Object.values(this.activeArea[type])
+        );
+        window.alert('Area saved');
+      }
+
+      _deleteEntity(type, editingId) {
+        const areaName = this.activeArea.name;
+
+        if (!editingId) {
+          this.page = 'area-dashboard';
+          window.alert('Deleted');
+          this.$.roomEditor.room = null;
+          return;
+        }
+
+        delete this.areas[this.activeArea.name][type][`${areaName}:${editingId}`];
+        this.notifyPath(`areas.${areaName}.${type}.${areaName}:${editingId}`, undefined);
+
+        // trigger redraw
+        this.activeArea = null;
+        this.activeArea = this.areas[areaName];
+
+        this.$.ranvierService.saveAreaEntityData(
+          this.activeArea,
+          type,
+          Object.values(this.activeArea[type])
+        );
+        this.page = 'area-dashboard';
+        window.alert('Deleted');
+      }
     }
 
     window.customElements.define(SomaApp.is, SomaApp);
   </script>
 </dom-module>
-<!-- vim: set ft=javascript : -->
+<!-- vim: set ft=javascript fdm=marker fmr=(((,))) : -->

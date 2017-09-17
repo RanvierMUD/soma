@@ -31,6 +31,12 @@
         display: flex;
         flex-direction: column;
         padding: 12px;
+        overflow-y: auto;
+      }
+
+      h2 {
+        border-bottom: 2px solid var(--ranvier-green);
+        margin-top: 32px;
       }
 
       .coordinates, .entities-container {
@@ -39,6 +45,8 @@
       .coordinates-label, .entities-label {
         font-size: 12px;
         color: #737373;
+        display: block;
+        margin-bottom: 12px;
       }
       .coordinates__inputs {
         display: flex;
@@ -62,10 +70,14 @@
         padding-left: 12px;
       }
       .entity-container {
-        border-bottom: 1px dashed var(--ranvier-green);
         margin-bottom: 12px;
         display: flex;
         flex-direction: column;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        padding: 4px;
+        background-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
       }
 
       .list-add {
@@ -100,6 +112,11 @@
       <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
 
       <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
+
+      <h2>Scripting</h2>
+      <paper-input  id="roomScript" label="Script name" value="{{room.script}}" always-float-label></paper-input>
+
+      <!-- TODO: behaviors -->
 
       <!-- items list -->
       <div class="entities-container">
@@ -295,7 +312,6 @@
         });
       }
 
-
       _addItem() {
         this._addEntity('items', _ => ({ id: null }));
       }
@@ -401,11 +417,13 @@
         }
 
         if (this.room.exits) {
-          this.set('room.exits', this.room.npcs.filter(exit => {
+          this.set('room.exits', this.room.exits.filter(exit => {
             return !!exit.roomId;
           }));
         }
 
+        // cast id to string
+        this.set('room.id', this.room.id + '');
         if (!this.room.id || this.room.id.includes(':')) {
           window.alert("Rooms must have an id and it cannot contain ':'");
           return;

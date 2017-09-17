@@ -34,6 +34,23 @@
       };
     }
 
+    createItem() {
+      return {
+        id: null,
+        name: '',
+        description: '',
+        script: '',
+        items: [],
+        maxItems: Infinity,
+        closeable: false,
+        closed: false,
+        locked: false,
+        lockedBy: null,
+        type: 'OBJECT',
+        properties: {},
+      };
+    }
+
     saveAreaEntityData(area, type, data) {
       const path = `${area.path}/${type}.yml`;
       fs.writeFileSync(path, yaml.dump(data, {

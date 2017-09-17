@@ -192,9 +192,14 @@
         </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'items', area.items.*)]]" as="item">
-            <div class="entity-list__item">
-              [[item.title]]
-              <div class="entity-list__item__id" on-tap="_selectItem">[[item.id]]</div>
+            <div
+              class="entity-list__item"
+              on-tap="_selectItem"
+              on-mouseover="_hoverItem"
+              on-mouseout="_clearHoverItem"
+            >
+              [[item.name]]
+              <div class="entity-list__item__id">[[item.id]]</div>
             </div>
           </template>
         </div>
@@ -208,9 +213,9 @@
         </div>
         <div class="entity-list__content">
           <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs', area.npcs.*)]]" as="npc">
-            <div class="entity-list__item">
+            <div class="entity-list__item" on-tap="_selectNpc">
               [[npc.name]]
-              <div class="entity-list__item__id" on-tap="_selectNpc">[[npc.id]]</div>
+              <div class="entity-list__item__id">[[npc.id]]</div>
             </div>
           </template>
         </div>
@@ -286,6 +291,13 @@
 
       _clearHoverRoom() {
         this.$.areaMap.highlightRoom(null);
+      }
+
+      _selectItem(e) {
+        const item = (e.detail && e.detail.item) || e.model.item;
+        this.dispatchEvent(new CustomEvent('edit-item', { detail: {
+          item,
+        }}));
       }
 
       _getAreaEntities(area, type) {

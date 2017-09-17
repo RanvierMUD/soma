@@ -1,0 +1,302 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+
+<link rel="import" href="shared-styles.html">
+
+<link rel="import" href="area-map.html">
+
+<dom-module id="item-editor">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .toolbar__title {
+        text-indent: 0;
+      }
+      .area-name {
+        font-weight: bold;
+        font-style: italic;
+      }
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      h2 {
+        border-bottom: 2px solid var(--ranvier-green);
+        margin-top: 32px;
+      }
+
+      #itemDesc {
+        --paper-input-container-input: {
+          font-family: 'Roboto Mono';
+        };
+      }
+
+      paper-toggle-button {
+        display: block;
+      }
+
+      .entities-container {
+        margin-top: 12px;
+      }
+      .entities-label {
+        font-size: 12px;
+        color: #737373;
+        display: block;
+        margin-bottom: 12px;
+      }
+      .entities-list {
+        padding-left: 12px;
+      }
+      .entity-container {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        padding: 4px;
+        background-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .list-add {
+        padding: 8px;
+        display: flex;
+        margin-top: 12px;
+      }
+    </style>
+
+    <div class="toolbar">
+      <span class="toolbar-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
+      <span class="toolbar__title">Editing Item</span>
+      <span class="toolbar-btn material-icons" on-tap="deleteItem" title="Delete">delete</span>
+      <span class="toolbar-btn material-icons" on-tap="save" title="Save">save</span>
+    </div>
+
+    <div class="content">
+      <paper-input id="itemId" label="ID" value="{{item.id}}">
+        <span class="area-name" slot="prefix">[[area.name]]:</span>
+      </paper-input>
+
+      <vaadin-combo-box
+        id="itemType"
+        label="Item Type"
+        items="[[_itemTypes]]"
+        value="{{item.type}}"
+        allow-custom-values
+      ></vaadin-combo-box>
+
+      <paper-input id="itemName" label="Name" value="{{item.name}}"></paper-input>
+      <paper-textarea id="itemGroundString" label="Room Description" value="{{item.roomDesc}}" always-float-label></paper-textarea>
+      <paper-textarea id="itemDesc" label="Long Description" value="{{item.description}}" always-float-label></paper-textarea>
+
+      <h2>Scripting</h2>
+      <paper-input  id="itemScript" label="Script name" value="{{item.script}}" always-float-label></paper-input>
+
+      <!-- TODO: behaviors -->
+
+      <h2>Container Settings</h2>
+      <paper-toggle-button id="closableToggle" checked="{{item.closeable}}">Closeable</paper-toggle-button>
+      <paper-toggle-button id="closedToggle" checked="{{item.closed}}">Closed</paper-toggle-button>
+      <paper-toggle-button id="lockedToggle" checked="{{item.locked}}">Locked</paper-toggle-button>
+      <vaadin-combo-box
+        label="Key For Lock"
+        always-float-label
+        items="[[allItems]]"
+        item-label-path="name"
+        item-value-path="value"
+        value="{{item.lockedBy}}"
+      >
+        <template>
+          <span class="select-entity__label">[[item.name]]</span><br>
+          <span class="select-entity__value">[[item.value]]</span>
+        </template>
+      </vaadin-combo-box>
+
+      <!-- items list -->
+      <div class="entities-container">
+        <label class="entities-label">Items</label>
+        <div class="entities-list">
+          <template is="dom-repeat" items="[[_getItemEntities('items', item.items.*)]]">
+            <div class="entity-container">
+              <vaadin-combo-box
+                label="Item"
+                items="[[allItems]]"
+                item-label-path="name"
+                item-value-path="value"
+                value="[[item.id]]"
+                on-change="_itemValueUpdated"
+              >
+                <template>
+                  <span class="select-entity__label">[[item.name]]</span><br>
+                  <span class="select-entity__value">[[item.value]]</span>
+                </template>
+              </vaadin-combo-box>
+            </div>
+          </template>
+
+          <button class="ranvier-btn list-add" on-tap="_addItem" title="Add Item">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    class ItemEditor extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'item-editor'; }
+      static get properties() {
+        return {
+          areas: {
+            type: Object,
+          },
+
+          area: {
+            type: Object,
+          },
+
+          item: {
+            type: Object,
+            observer: '_itemSet'
+          },
+
+          dirty: {
+            type: Boolean,
+            value: false,
+          },
+
+          allItems: {
+            type: Array,
+            computed: '_computeAllEntities("items", "name", areas.*.items.*)',
+          },
+
+          _itemTypes: {
+            type: Array,
+            value: _ => ([
+              { value: 'ARMOR', label: 'Armor' },
+              { value: 'CONTAINER', label: 'Container' },
+              { value: 'OBJECT', label: 'Object' },
+              { value: 'POTION', label: 'Potion' },
+              { value: 'RESOURCE', label: 'Resource' },
+              { value: 'WEAPON', label: 'Weapon' },
+            ])
+          },
+
+        };
+      }
+
+      static get observers() {
+        return [
+          '_dirtify(item.*)',
+        ];
+      }
+
+      _dirtify(changes) {
+        if (changes.path === 'item') {
+          return;
+        }
+
+        this.dirty = true;
+      }
+
+      _itemSet() {
+        if (!this.item) {
+          return;
+        }
+
+        this.set('item.closeable', this.item.closed || this.item.locked || this.item.closeable);
+
+        this.dirty = false;
+      }
+
+      _getItemEntities(type) {
+        return (!this.item || !this.item[type]) ? [] : this.item[type].map(item => {
+          if (typeof item === 'string') {
+            return { id: item }
+          }
+
+          return item;
+        });
+      }
+
+      _computeAllEntities(type, labelProp) {
+        if (!this.areas) {
+          return [];
+        }
+
+        let items = [];
+        for (const area of Object.values(this.areas)) {
+          if (area[type]) {
+            Object.entries(area[type]).forEach(([ref, item]) => {
+              items.push({
+                value: ref,
+                name: `${item[labelProp]} (${area.name})`,
+              });
+            });
+          }
+        }
+
+        return items;
+      }
+
+      goBack() {
+        if (this.dirty) {
+          if (window.confirm("You have unsaved changes, are you sure?")) {
+            this.dirty = false;
+            this.goBack();
+          }
+          return;
+        }
+
+        this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      save() {
+        // cast id to string
+        this.set('item.id', this.item.id + '');
+        if (!this.item.id || this.item.id.includes(':')) {
+          window.alert("Items must have an id and it cannot contain ':'");
+          return;
+        }
+
+        this.set('item.name', (this.item.name && this.item.name.trim()) || '');
+
+        if (!this.item.name) {
+          window.alert("Items must have a name");
+          return;
+        }
+
+        this.dirty = false;
+        this.dispatchEvent(new CustomEvent('save', { detail: {
+          item: this.item,
+        }}));
+      }
+
+      deleteItem() {
+        if (!this.item.id) {
+          window.alert("The can't be deleted if you unset its id");
+          return;
+        }
+
+        if (window.confirm('Are you sure? If you have not committed in git yet it will be lost forever.')) {
+          this.dispatchEvent(new CustomEvent('delete-item'));
+        }
+      }
+    }
+
+    window.customElements.define(ItemEditor.is, ItemEditor);
+  </script>
+</dom-module>
+<!-- vim: set ft=javascript : -->
