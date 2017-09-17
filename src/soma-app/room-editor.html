@@ -1,0 +1,111 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="shared-styles.html">
+
+<link rel="import" href="area-map.html">
+
+<dom-module id="room-editor">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .toolbar__title {
+        text-indent: 0;
+      }
+      .area-name {
+        font-weight: bold;
+        font-style: italic;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+      }
+
+    </style>
+
+    <div class="toolbar">
+      <span class="back-btn material-icons" on-tap="goBack">arrow_back</span>
+      <span class="toolbar__title">Editing Room</span>
+      <span class="save-btn material-icons" on-tap="goBack">save</span>
+    </div>
+
+    <div class="content">
+      <paper-input id="roomId" label="ID" value="{{room.id}}">
+        <span class="area-name" slot="prefix">[[area.name]]:</span>
+      </paper-input>
+      <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
+    </div>
+  </template>
+  <script>
+    class RoomEditor extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'room-editor'; }
+      static get properties() {
+        return {
+          areas: {
+            type: Object,
+          },
+
+          area: {
+            type: Object,
+          },
+
+          room: {
+            type: Object,
+            observer: '_roomSet'
+          },
+
+          dirty: {
+            type: Boolean,
+            value: false,
+          },
+        };
+      }
+
+      static get observers() {
+        return [
+          '_dirtify(room.*)'
+        ];
+      }
+
+      _dirtify(changes) {
+        if (changes.path === 'room') {
+          return;
+        }
+
+        this.dirty = true;
+      }
+
+      _roomSet() {
+        this.dirty = false;
+      }
+
+      goBack() {
+        if (this.dirty) {
+          if (window.confirm("You have unsaved changes, are you sure?")) {
+            this.dirty = false;
+            this.goBack();
+          }
+          return;
+        }
+        this.dispatchEvent(new CustomEvent('exit'));
+      }
+
+      save() {
+        this.dispatchEvent(new CustomEvent('save', { detail: {
+          room: this.room,
+        }}));
+      }
+    }
+
+    window.customElements.define(RoomEditor.is, RoomEditor);
+  </script>
+</dom-module>
+<!-- vim: set ft=javascript : -->

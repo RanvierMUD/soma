@@ -157,7 +157,7 @@
           id="areaMap"
           rooms="[[area.rooms]]"
           floor="[[floor]]"
-          on-select-room="_mapSelectRoom"
+          on-select-room="_selectRoom"
           on-create-room="_mapCreateRoom"
         ></area-map>
     </div>
@@ -257,11 +257,6 @@
         }
       }
 
-      _mapSelectRoom(e) {
-        const room = e.detail.room;
-        // TODO
-      }
-
       _mapCreateRoom(e) {
         const coords = e.detail.coords;
         // TODO
@@ -269,6 +264,13 @@
 
       _createRoom() {
         // TODO
+      }
+
+      _selectRoom(e) {
+        const room = e.detail.room;
+        this.dispatchEvent(new CustomEvent('edit-room', { detail: {
+          room: e.detail.room,
+        }}));
       }
 
       _hoverRoom(e) {

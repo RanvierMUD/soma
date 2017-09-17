@@ -10,6 +10,7 @@
 
 <link rel="import" href="area-list.html">
 <link rel="import" href="area-dashboard.html">
+<link rel="import" href="room-editor.html">
 
 <dom-module id="soma-app">
   <template>
@@ -92,7 +93,19 @@
         id="areaDashboard"
         data-page="area-dashboard"
         area="{{activeArea}}"
+        on-edit-room="_editRoom"
+        on-create-room="_createRoom"
         on-exit="_exitAreaDashboard"
+      ></area-dashboard>
+
+      <room-editor
+        id="roomEditor"
+        data-page="room-editor"
+        area="[[activeArea]]"
+        areas="[[areas]]"
+        on-save="_saveRoom"
+        on-exit="_exitRoomEditor"
+      ></room-editor>
     </iron-pages>
 
     <ranvier-service id="ranvierService" load-messages="{{_loadMessages}}"></ranvier-service>
@@ -179,8 +192,32 @@
         this.page = 'area-dashboard';
       }
 
+      _createRoom(e) {
+        const defaults = e.detail.room || {};
+        const room = Object.assign(this.$.ranvierService.createRoom(), defaults);
+        this._editRoom({ detail: { room }});
+      }
+
+      _editRoom(e) {
+        const room = e.detail.room;
+        this._editingRoomId = room.id;
+        // edit a copy to prevent by-ref weirdness
+        this.$.roomEditor.room = JSON.parse(JSON.stringify(room));
+        this.page = 'room-editor';
+      }
+
       _exitAreaDashboard() {
         this.page = 'area-list';
+      }
+
+      _roomSave(e) {
+        // TODO: add room to areas list, save area rooms file
+        console.log('Save room');
+      }
+
+      _exitRoomEditor() {
+        this._editingRoomId = null;
+        this.page = 'area-dashboard';
       }
     }
 
