@@ -61,13 +61,17 @@
 
     loadRepo(repo) {
       this.loadMessages = [];
+      this._log(`Loading repo [${repo}]...`);
+
       const bundlesPath = `${repo}/bundles/`;
+      const ranvierJsonPath = `${repo}/ranvier.json`;
+      const config = this.parseFile(ranvierJsonPath);
 
       const bundles = fs.readdirSync(bundlesPath);
       let areas = {};
       for (const bundle of bundles) {
         const bundlePath = bundlesPath + bundle;
-        if (fs.statSync(bundlePath).isFile() || bundle === '.' || bundle === '..') {
+        if (!config.bundles.includes(bundle) || fs.statSync(bundlePath).isFile() || bundle === '.' || bundle === '..') {
           continue;
         }
 
@@ -81,7 +85,7 @@
     }
 
     loadAreas(areas, bundle, areasDir) {
-      this.push('loadMessages', `Loading bundle [${bundle}]...`);
+      this._log(`Loading bundle [${bundle}]...`);
 
       const dirs = fs.readdirSync(areasDir);
 
@@ -96,7 +100,7 @@
         areas[areaName] = area;
       }
 
-      this.push('loadMessages', 'Done');
+      this._log('Done');
     }
 
 
@@ -106,7 +110,7 @@
     * @param {string} areaPath
     */
     loadArea(bundle, areaName, areaPath) {
-      this.push('loadMessages', `\tLoading area [${areaName}]`);
+      this._log(`\tLoading area [${areaName}]`);
 
       const paths = {
         manifest: areaPath + '/manifest.yml',
@@ -136,12 +140,12 @@
         area.rooms = this.loadEntity('rooms', area, paths.rooms);
       }
 
-      this.push('loadMessages', `\tDone`);
+      this._log(`\tDone`);
       return area;
     }
 
     loadEntity(type, area, entitiesFile) {
-      this.push('loadMessages', `\t\tLOAD: ${type}...`);
+      this._log(`\t\tLOAD: ${type}...`);
 
       // parse the item files
       const entitiesData = this.parseFile(entitiesFile);
@@ -157,7 +161,7 @@
         entities[entityRef] = entity;
       });
 
-      this.push('loadMessages', `\t\tENDLOAD: ${type}...`);
+      this._log(`\t\tENDLOAD: ${type}...`);
       return entities;
     }
 
@@ -179,6 +183,11 @@
       }
 
       return parsers[ext](contents);
+    }
+
+    _log(message) {
+      this.push('loadMessages', message);
+      console.log(message);
     }
   }
 
