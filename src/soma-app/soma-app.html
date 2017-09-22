@@ -210,7 +210,9 @@
         this.loadedRepo = repo;
         this._loadMessages = [];
         this.page = 'loading-data';
-        this.areas = this.$.ranvierService.loadRepo(this.loadedRepo);
+        const repoData = this.$.ranvierService.loadRepo(this.loadedRepo);
+        this.areas = repoData.areas;
+        this.gameBehaviors = repoData.behaviors;
         this.page = 'area-list';
       }
       /* ))) */

@@ -67,21 +67,36 @@
       const ranvierJsonPath = `${repo}/ranvier.json`;
       const config = this.parseFile(ranvierJsonPath);
 
+      const features = [
+        { type: 'areas', path: 'areas/', fn: 'loadAreas' },
+        { type: 'behaviors', path: 'behaviors/', fn: 'loadBehaviors' },
+      ];
+
       const bundles = fs.readdirSync(bundlesPath);
-      let areas = {};
+      let repoData = {
+        areas: {},
+        behaviors: {
+          npc: [],
+          item: [],
+          room: [],
+        },
+      };
       for (const bundle of bundles) {
         const bundlePath = bundlesPath + bundle;
         if (!config.bundles.includes(bundle) || fs.statSync(bundlePath).isFile() || bundle === '.' || bundle === '..') {
           continue;
         }
 
-        const path = `${bundlePath}/areas/`;
-        if (fs.existsSync(path)) {
-          this.loadAreas(areas, bundle, path);
+        this._log(`LOAD: BUNDLE [${bundle}] START`);
+        for (const feature of features) {
+          const path = `${bundlePath}/${feature.path}`;
+          if (fs.existsSync(path)) {
+             this[feature.fn](repoData[feature.type], bundle, path);
+          }
         }
       }
 
-      return areas;
+      return repoData;
     }
 
     loadAreas(areas, bundle, areasDir) {
@@ -163,6 +178,38 @@
 
       this._log(`\t\tENDLOAD: ${type}...`);
       return entities;
+    }
+
+    loadBehaviors(data, bundle, behaviorsDir) {
+      this._log(`\tLOAD: Behaviors...`);
+
+      for (const type in data) {
+        let typeDir = behaviorsDir + type + '/';
+
+        if (!fs.existsSync(typeDir)) {
+          continue;
+        }
+
+        this._log(`\t\tLOAD: BEHAVIORS [${type}]...`);
+        const files = fs.readdirSync(typeDir);
+
+        for (const behaviorFile of files) {
+          const behaviorPath = typeDir + behaviorFile;
+          if (!(fs.statSync(behaviorPath).isFile() && behaviorFile.match(/js$/))) {
+            continue;
+          }
+
+          const behaviorName = path.basename(behaviorFile, path.extname(behaviorFile));
+          this._log(`\t\t\tLOAD: BEHAVIORS [${type}] ${behaviorName}...`);
+
+          if (!data[type].includes(behaviorName)) {
+            data[type].push(behaviorName);
+          }
+        }
+      }
+
+      this._log(`\tENDLOAD: Behaviors...`);
+      return data;
     }
 
     parseFile(filepath) {
