@@ -132,6 +132,7 @@
         rooms: areaPath + '/rooms.yml',
         items: areaPath + '/items.yml',
         npcs: areaPath + '/npcs.yml',
+        quests: areaPath + '/quests.yml',
       };
 
       const manifest = this.parseFile(paths.manifest);
@@ -155,6 +156,10 @@
         area.rooms = this.loadEntity('rooms', area, paths.rooms);
       }
 
+      if (fs.existsSync(paths.quests)) {
+        area.quests = this.loadEntity('quests', area, paths.quests);
+      }
+
       this._log(`\tDone`);
       return area;
     }
@@ -165,16 +170,25 @@
       // parse the item files
       const entitiesData = this.parseFile(entitiesFile);
 
-      if (!entitiesData || !entitiesData.length) {
+      if (!entitiesData) {
+        this._log(`\t\tENDLOAD: ${type}, none found...`);
         return {};
       }
 
       let entities = {};
       // set the entity definitions onto the factory
-      entitiesData.forEach(entity => {
-        const entityRef = `${area.name}:${entity.id}`;
-        entities[entityRef] = entity;
-      });
+      if (Array.isArray(entitiesData)) {
+        entitiesData.forEach(entity => {
+          const entityRef = `${area.name}:${entity.id}`;
+          entities[entityRef] = entity;
+        });
+      } else {
+      debugger;
+        for (const [, entity] of Object.entries(entitiesData)) {
+          const entityRef = `${area.name}:${entity.id}`;
+          entities[entityRef] = entity;
+        }
+      }
 
       this._log(`\t\tENDLOAD: ${type}...`);
       return entities;

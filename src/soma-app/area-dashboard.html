@@ -113,7 +113,7 @@
       }
       .entity-list__item {
         width: 100%;
-        height: 52px;
+        min-height: 52px;
         padding: 8px;
         border-bottom: 1px solid #777;
         font-weight: bold;
@@ -221,6 +221,22 @@
             >
               [[npc.name]]
               <div class="entity-list__item__id">[[npc.id]]</div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- quest list -->
+      <div class="entity-list">
+        <div class="entity-list__toolbar">
+          <span class="entity-list__toolbar__title">Quests</span>
+          <span class="material-icons add-btn" on-tap="_createQuest">add</span>
+        </div>
+        <div class="entity-list__content">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'quests', area.quests.*)]]" as="quest">
+            <div class="entity-list__item" on-tap="_selectQuest">
+              [[quest.title]]
+              <div class="entity-list__item__id">[[quest.id]]</div>
             </div>
           </template>
         </div>
