@@ -201,7 +201,7 @@
           return null;
         }
 
-        const rooms = Object.values(this.rooms);
+        const rooms = this.rooms.values();
         this.lowX = 0;
         this.highX = 0;
         this.lowY = 0;
@@ -216,7 +216,7 @@
             continue;
           }
 
-          const [ x, y, z ] = room.coordinates;
+          const { x, y, z } = room.coordinates;
           if (x < this.lowX) {
             this.lowX = x;
           }
@@ -275,13 +275,13 @@
               td.classList.add('has-room');
               td.title = room.title;
 
-              if (room.npcs && room.npcs.length) {
+              if (room.defaultNpcs && room.defaultNpcs.length) {
                 const coordSpan = document.createElement('span');
                 coordSpan.classList.add('has-npcs');
                 td.appendChild(coordSpan);
               }
 
-              if (room.items && room.items.length) {
+              if (room.defaultItems && room.defaultItems.length) {
                 const coordSpan = document.createElement('span');
                 coordSpan.classList.add('has-items');
                 td.appendChild(coordSpan);

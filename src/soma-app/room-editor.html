@@ -30,21 +30,36 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        padding: 12px;
+        padding: 0;
         overflow-y: auto;
       }
 
       h2 {
         border-bottom: 2px solid var(--ranvier-green);
         margin-top: 32px;
+        padding-left: 12px;
+        margin-bottom: 0;
       }
+
+     .fieldset {
+       padding: 0 12px 24px;
+       background-color: rgba(255, 255, 255, 0.5);
+       border-bottom: 1px solid #ccc;
+       box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                   0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                   0 3px 1px -2px rgba(0, 0, 0, 0.2);
+     }
 
       .coordinates, .entities-container {
         margin-top: 12px;
       }
+      .entities-container {
+        padding-bottom: 24px;
+      }
       .coordinates-label, .entities-label {
-        font-size: 12px;
+        font-size: 16px;
         color: #737373;
+        border-bottom: 1px solid #ccc;
         display: block;
         margin-bottom: 12px;
       }
@@ -83,7 +98,7 @@
       .list-add {
         padding: 8px;
         display: flex;
-        margin-top: 12px;
+        margin: 12px auto 0;
       }
 
     </style>
@@ -96,115 +111,121 @@
     </div>
 
     <div class="content">
-      <paper-input id="roomId" label="ID" value="{{room.id}}">
-        <span class="area-name" slot="prefix">[[area.name]]:</span>
-      </paper-input>
+      <div class="fieldset">
+        <paper-input id="roomId" label="ID" value="{{room.id}}">
+          <span class="area-name" slot="prefix">[[area.name]]:</span>
+        </paper-input>
 
-      <div class="coordinates">
-        <label class="coordinates-label">Coordinates</label>
-        <div class="coordinates__inputs">
-          <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}" always-float-label></paper-input>,
-          <paper-input id="coordY" label="Y" type="number" value="{{_coordinates.y::change}}" always-float-label></paper-input>,
-          <paper-input id="coordZ" label="Z" type="number" value="{{_coordinates.z::change}}" always-float-label></paper-input>
+        <div class="coordinates">
+          <label class="coordinates-label">Coordinates</label>
+          <div class="coordinates__inputs">
+            <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}"></paper-input>,
+            <paper-input id="coordY" label="Y" type="number" value="{{_coordinates.y::change}}"></paper-input>,
+            <paper-input id="coordZ" label="Z" type="number" value="{{_coordinates.z::change}}"></paper-input>
+          </div>
         </div>
+
+        <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
+
+        <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
       </div>
 
-      <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
-
-      <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
-
       <h2>Scripting</h2>
-      <paper-input  id="roomScript" label="Script name" value="{{room.script}}" always-float-label></paper-input>
+      <div class="fieldset">
+        <paper-input  id="roomScript" label="Script name" value="{{room.script}}"></paper-input>
+      </div>
 
       <!-- TODO: behaviors -->
 
       <h2>Contents</h2>
-      <!-- items list -->
-      <div class="entities-container">
-        <label class="entities-label">Items</label>
-        <div class="entities-list">
-          <template is="dom-repeat" items="[[_getRoomEntities('items', room.items.*)]]">
-            <div class="entity-container">
-              <vaadin-combo-box
-                label="Item"
-                items="[[allItems]]"
-                item-label-path="name"
-                item-value-path="value"
-                value="[[item.id]]"
-                on-change="_itemValueUpdated"
-              >
-                <template>
-                  <span class="select-entity__label">[[item.name]]</span><br>
-                  <span class="select-entity__value">[[item.value]]</span>
-                </template>
-              </vaadin-combo-box>
-            </div>
-          </template>
+      <div class="fieldset">
+        <!-- items list -->
+        <div class="entities-container">
+          <label class="entities-label">Items</label>
+          <div class="entities-list">
+            <template id="repeat_items" is="dom-repeat" items="[[_getRoomEntities('items', room.items.*)]]">
+              <div class="entity-container">
+                <vaadin-combo-box
+                  label="Item"
+                  items="[[allItems]]"
+                  item-label-path="name"
+                  item-value-path="value"
+                  value="[[item]]"
+                  on-change="_itemValueUpdated"
+                >
+                  <template>
+                    <span class="select-entity__label">[[item.name]]</span><br>
+                    <span class="select-entity__value">[[item.value]]</span>
+                  </template>
+                </vaadin-combo-box>
+              </div>
+            </template>
 
-          <button class="ranvier-btn list-add" on-tap="_addItem" title="Add Item">
-            <span class="material-icons">add</span>
-          </button>
+            <button class="ranvier-btn list-add" on-tap="_addItem" title="Add Item">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- npcs list -->
-      <div class="entities-container">
-        <label class="entities-label">Npcs</label>
-        <div class="entities-list">
-          <template is="dom-repeat" items="[[_getRoomEntities('npcs', room.npcs.*)]]">
-            <div class="entity-container">
-              <vaadin-combo-box
-                label="Npc"
-                items="[[allNpcs]]"
-                item-label-path="name"
-                item-value-path="value"
-                value="[[item.id]]"
-                on-change="_npcValueUpdated"
-              >
-                <template>
-                  <span class="select-entity__label">[[item.name]]</span><br>
-                  <span class="select-entity__value">[[item.value]]</span>
-                </template>
-              </vaadin-combo-box>
-            </div>
-          </template>
+        <!-- npcs list -->
+        <div class="entities-container">
+          <label class="entities-label">Npcs</label>
+          <div class="entities-list">
+            <template id="repeat_npcs" is="dom-repeat" items="[[_getRoomEntities('npcs', room.npcs.*)]]">
+              <div class="entity-container">
+                <vaadin-combo-box
+                  label="Npc"
+                  items="[[allNpcs]]"
+                  item-label-path="name"
+                  item-value-path="value"
+                  value="[[item]]"
+                  on-change="_npcValueUpdated"
+                >
+                  <template>
+                    <span class="select-entity__label">[[item.name]]</span><br>
+                    <span class="select-entity__value">[[item.value]]</span>
+                  </template>
+                </vaadin-combo-box>
+              </div>
+            </template>
 
-          <button class="ranvier-btn list-add" on-tap="_addNpc" title="Add Npc">
-            <span class="material-icons">add</span>
-          </button>
+            <button class="ranvier-btn list-add" on-tap="_addNpc" title="Add Npc">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- exits list -->
-      <div class="entities-container">
-        <label class="entities-label">Exits</label>
-        <div class="entities-list">
-          <template is="dom-repeat" items="[[_getRoomEntities('exits', room.exits.*)]]">
-            <div class="entity-container">
-              <vaadin-combo-box
-                label="Room"
-                items="[[allRooms]]"
-                item-label-path="name"
-                item-value-path="value"
-                value="[[item.roomId]]"
-                on-change="_exitValueUpdated"
-              >
-                <template>
-                  <span class="select-entity__label">[[item.name]]</span><br>
-                  <span class="select-entity__value">[[item.value]]</span>
-                </template>
-              </vaadin-combo-box>
+        <!-- exits list -->
+        <div class="entities-container">
+          <label class="entities-label">Exits</label>
+          <div class="entities-list">
+            <template id="repeat_exits" is="dom-repeat" items="[[_getRoomEntities('exits', room.exits.*)]]">
+              <div class="entity-container">
+                <vaadin-combo-box
+                  label="Room"
+                  items="[[allRooms]]"
+                  item-label-path="name"
+                  item-value-path="value"
+                  value="[[item.roomId]]"
+                  on-change="_exitValueUpdated"
+                >
+                  <template>
+                    <span class="select-entity__label">[[item.name]]</span><br>
+                    <span class="select-entity__value">[[item.value]]</span>
+                  </template>
+                </vaadin-combo-box>
 
-              <paper-input label="Direction" value="[[item.direction]]" on-change="_exitDirectionUpdated" always-float-label></paper-input>
-            </div>
-          </template>
+                <paper-input label="Direction" value="[[item.direction]]" on-change="_exitDirectionUpdated"></paper-input>
+              </div>
+            </template>
 
-          <button class="ranvier-btn list-add" on-tap="_addExit" title="Add Exit">
-            <span class="material-icons">add</span>
-          </button>
+            <button class="ranvier-btn list-add" on-tap="_addExit" title="Add Exit">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
         </div>
-      </div>
 
+      </div>
     </div>
   </template>
   <script>
@@ -212,6 +233,7 @@
       static get is() { return 'room-editor'; }
       static get properties() {
         return {
+          gameState: Object,
           areas: {
             type: Object,
           },
@@ -220,20 +242,9 @@
             type: Object,
           },
 
-          allItems: {
-            type: Array,
-            computed: '_computeAllEntities("items", "name", areas.*)',
-          },
-
-          allNpcs: {
-            type: Array,
-            computed: '_computeAllEntities("npcs", "name", areas.*)',
-          },
-
-          allRooms: {
-            type: Array,
-            computed: '_computeAllEntities("rooms", "title", areas.*)',
-          },
+          allItems: Array,
+          allNpcs: Array,
+          allRooms: Array,
 
           room: {
             type: Object,
@@ -260,6 +271,23 @@
           '_dirtify(room.*)',
           '_updateCoordinates(_coordinates.*)',
         ];
+      }
+
+      loadAllEntities() {
+        this.allItems = Array.from(this.gameState.ItemFactory.entities.values()).map(entity => ({
+          value: entity.entityReference,
+          name: `${entity.name} (${this.gameState.AreaManager.getAreaByReference(entity.entityReference).name})`,
+        }));
+
+        this.allNpcs = Array.from(this.gameState.MobFactory.entities.values()).map(entity => ({
+          value: entity.entityReference,
+          name: `${entity.name} (${this.gameState.AreaManager.getAreaByReference(entity.entityReference).name})`,
+        }));
+
+        this.allRooms = Array.from(this.gameState.RoomManager.rooms.values()).map(room => ({
+          value: room.entityReference,
+          name: `${room.title} (${room.area.name})`,
+        }));
       }
 
       _dirtify(changes) {
@@ -304,13 +332,7 @@
       }
 
       _getRoomEntities(type) {
-        return (!this.room || !this.room[type]) ? [] : this.room[type].map(item => {
-          if (typeof item === 'string') {
-            return { id: item }
-          }
-
-          return item;
-        });
+        return (!this.room || !this.room[type]) ? [] : this.room[type];
       }
 
       _addItem() {
@@ -337,7 +359,9 @@
           return;
         }
 
-        this.push(`room.${type}`, val);
+        this.room[type].push(val);
+        this.set(`room.${type}`, this.room[type]);
+        this.$[`repeat_${type}`].render();
       }
 
       _itemValueUpdated(e) {
@@ -361,34 +385,15 @@
         const value = e.currentTarget.value;
         if (value === '') {
           this.splice(`room.${type}`, index, 1);
-          return;
-        }
-
-        if (typeof this.room[type][index] === 'string') {
-          this.set(`room.${type}.${index}`, value);
         } else {
-          this.set(`room.${type}.${index}.${path}`, value);
-        }
-      }
-
-      _computeAllEntities(type, labelProp) {
-        if (!this.areas) {
-          return [];
-        }
-
-        let items = [];
-        for (const area of Object.values(this.areas)) {
-          if (area[type]) {
-            Object.entries(area[type]).forEach(([ref, item]) => {
-              items.push({
-                value: ref,
-                name: `${item[labelProp]} (${area.name})`,
-              });
-            });
+          if (typeof this.room[type][index] === 'string') {
+            this.set(`room.${type}.${index}`, value);
+          } else {
+            this.set(`room.${type}.${index}.${path}`, value);
           }
         }
 
-        return items;
+        this.$[`repeat_${type}`].render();
       }
 
       goBack() {

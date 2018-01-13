@@ -125,9 +125,9 @@
         const area = this.gameState.AreaManager.getArea(areaName);
         switch(type) {
           case 'items':
-            return area.originEntities.items.size;
+            return area.defaultEntities.items.size;
           case 'npcs':
-            return area.originEntities.npcs.size;
+            return area.defaultEntities.npcs.size;
           case 'rooms':
             return area.rooms.size;
         }

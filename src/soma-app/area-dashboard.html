@@ -8,7 +8,7 @@
 
 <dom-module id="area-dashboard">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles">/* ((( */
       :host {
         display: flex;
         flex-direction: column;
@@ -127,7 +127,7 @@
         font-weight: normal;
         font-style: italic;
       }
-    </style>
+    /* ))) */</style>
 
     <div class="toolbar">
       <span class="toolbar-btn material-icons" on-tap="goBack">arrow_back</span>
@@ -163,7 +163,7 @@
     </div>
 
     <div class="entities-lists">
-      <!-- room list -->
+      <!-- room list ((( -->
       <div class="entity-list">
         <div class="entity-list__toolbar">
           <span class="entity-list__toolbar__title">Rooms</span>
@@ -183,15 +183,16 @@
           </template>
         </div>
       </div>
+      <!-- ))) -->
 
-      <!-- item list -->
+      <!-- item list ((( -->
       <div class="entity-list">
         <div class="entity-list__toolbar">
           <span class="entity-list__toolbar__title">Items</span>
           <span class="material-icons add-btn" on-tap="_createItem">add</span>
         </div>
         <div class="entity-list__content">
-          <template is="dom-repeat" items="[[_getAreaEntities(area, 'items', area.items.*)]]" as="item">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'items')]]" as="item">
             <div
               class="entity-list__item"
               on-tap="_selectItem"
@@ -204,15 +205,16 @@
           </template>
         </div>
       </div>
+      <!-- ))) -->
 
-      <!-- npc list -->
+      <!-- npc list ((( -->
       <div class="entity-list">
         <div class="entity-list__toolbar">
           <span class="entity-list__toolbar__title">NPCs</span>
           <span class="material-icons add-btn" on-tap="_createNpc">add</span>
         </div>
         <div class="entity-list__content">
-          <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs', area.npcs.*)]]" as="npc">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'npcs')]]" as="npc">
             <div
               class="entity-list__item"
               on-tap="_selectNpc"
@@ -224,23 +226,25 @@
             </div>
           </template>
         </div>
-      </div>
+      <!-- ))) --></div>
 
-      <!-- quest list -->
+      <!-- quest list ((( -->
       <div class="entity-list">
         <div class="entity-list__toolbar">
           <span class="entity-list__toolbar__title">Quests</span>
           <span class="material-icons add-btn" on-tap="_createQuest">add</span>
         </div>
         <div class="entity-list__content">
-          <template is="dom-repeat" items="[[_getAreaEntities(area, 'quests', area.quests.*)]]" as="quest">
+          <template is="dom-repeat" items="[[_getAreaEntities(area, 'quests')]]" as="quest">
             <div class="entity-list__item" on-tap="_selectQuest">
-              [[quest.title]]
+              [[quest.config.title]]
               <div class="entity-list__item__id">[[quest.id]]</div>
             </div>
           </template>
         </div>
       </div>
+      <!-- ))) -->
+
     </div>
   </template>
   <script>
@@ -248,6 +252,7 @@
       static get is() { return 'area-dashboard'; }
       static get properties() {
         return {
+          gameState: Object,
           area: {
             type: Object,
             notify: true
@@ -365,7 +370,22 @@
       /* ))) */
 
       _getAreaEntities(area, type) {
-        return (this.area && this.area[type]) ? Object.values(this.area[type]) : [];
+        switch(type) {
+          case 'items':
+            return Array.from(area.defaultEntities.items.values()).map(entityRef => {
+              return this.gameState.ItemFactory.getDefinition(entityRef);
+            });
+          case 'npcs':
+            return Array.from(area.defaultEntities.npcs.values()).map(entityRef => {
+              return this.gameState.MobFactory.getDefinition(entityRef);
+            });
+          case 'rooms':
+            return Array.from(area.rooms.values());
+          case 'quests':
+            return Array.from(area.defaultEntities.quests.values()).map(entityRef => {
+              return this.gameState.QuestFactory.get(entityRef);
+            });
+        }
       }
     }
 

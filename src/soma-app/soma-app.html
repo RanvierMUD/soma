@@ -95,6 +95,7 @@
       <area-dashboard
         id="areaDashboard"
         data-page="area-dashboard"
+        game-state="[[GameState]]"
         area="{{activeArea}}"
         on-edit-room="_editRoom"
         on-create-room="_createRoom"
@@ -108,6 +109,7 @@
       <room-editor
         id="roomEditor"
         data-page="room-editor"
+        game-state="[[GameState]]"
         area="[[activeArea]]"
         areas="[[areas]]"
         on-save="_saveRoom"
@@ -219,6 +221,7 @@
         */
 
         this.$.areaList.initAreas();
+        this.$.roomEditor.loadAllEntities();
         this.page = 'area-list';
       }
       /* ))) */
@@ -245,7 +248,7 @@
         const room = e.detail.room;
         this._editingRoomId = room.id;
         // edit a copy to prevent by-ref weirdness
-        this.$.roomEditor.room = JSON.parse(JSON.stringify(room));
+        this.$.roomEditor.room = JSON.parse(JSON.stringify(room.def));
         this.page = 'room-editor';
       }
 
