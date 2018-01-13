@@ -27,25 +27,36 @@
           for (const [id, room] of area.rooms) {
             data[id] = JSON.parse(JSON.stringify(room.def));
           }
-
-          if (previousId && entity.id !== previousId) {
-            delete data[previousId];
-          }
-
-          data[entity.id] = entity;
-          data = Object.values(data);
           break;
         case 'items':
+          data = {};
+          for (const itemRef of area.defaultEntities.items) {
+            const def = JSON.parse(JSON.stringify(state.ItemFactory.getDefinition(itemRef)));
+            data[def.id] = def;
+          }
           break;
         case 'npcs':
+          data = {};
+          for (const npcRef of area.defaultEntities.npcs) {
+            const def = JSON.parse(JSON.stringify(state.MobFactory.getDefinition(npcRef)));
+            data[def.id] = def;
+          }
           break;
         case 'quests':
+          // TOOD: Implement quest saving
           break;
       }
 
       if (!data) {
         return;
       }
+
+      if (previousId && entity.id !== previousId) {
+        delete data[previousId];
+      }
+
+      data[entity.id] = entity;
+      data = Object.values(data);
 
       const areaPath = `${this.repo}/bundles/${area.areaPath}`;
       const path = `${areaPath}/${type}.yml`;
