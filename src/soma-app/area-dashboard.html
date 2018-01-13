@@ -370,6 +370,10 @@
       /* ))) */
 
       _getAreaEntities(area, type) {
+        if (!area) {
+          return [];
+        }
+
         switch(type) {
           case 'items':
             return Array.from(area.defaultEntities.items.values()).map(entityRef => {

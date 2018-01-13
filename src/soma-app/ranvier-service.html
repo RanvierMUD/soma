@@ -19,14 +19,46 @@
       };
     }
 
-    saveAreaEntityData(area, type, data) {
-      const path = `${area.path}/${type}.yml`;
+    saveAreaEntityData(state, area, type, previousId, entity) {
+      let data = null;
+      switch (type) {
+        case 'rooms':
+          data = {};
+          for (const [id, room] of area.rooms) {
+            data[id] = JSON.parse(JSON.stringify(room.def));
+          }
+
+          if (previousId && entity.id !== previousId) {
+            delete data[previousId];
+          }
+
+          data[entity.id] = entity;
+          data = Object.values(data);
+          break;
+        case 'items':
+          break;
+        case 'npcs':
+          break;
+        case 'quests':
+          break;
+      }
+
+      if (!data) {
+        return;
+      }
+
+      const areaPath = `${this.repo}/bundles/${area.areaPath}`;
+      const path = `${areaPath}/${type}.yml`;
       fs.writeFileSync(path, yaml.dump(data, {
         flowLevel: 3
       }));
+
+      const updatedArea = state.BundleManager.loadArea(area.bundle, area.name, areaPath);
+      state.AreaManager.addArea(updatedArea);
     }
 
     loadRepo(state, repo) {
+      this.repo = repo;
       this.loadMessages = [];
       this._log(`Loading repo [${repo}]...`);
 

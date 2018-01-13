@@ -334,30 +334,18 @@
         const areaName = this.activeArea.name;
         const ref = areaName + ':' + entity.id;
 
-        /*
-        if (!this.areas[areaName][type]) {
-          this.set(`areas.${areaName}.${type}`, {});
-        }
-
-        if (editingId) {
-          if (editingId !== entity.id) {
-            delete this.areas[areaName][type][`${areaName}:${editingId}`];
-            this.notifyPath(`areas.${areaName}.${type}.${areaName}:${editingId}`, undefined);
-          }
-        }
-
-        this.set(`areas.${areaName}.${type}.${ref}`, entity);
-
-        // trigger redraw
-        this.activeArea = null;
-        this.activeArea = this.areas[areaName];
-
         this.$.ranvierService.saveAreaEntityData(
+          this.GameState,
           this.activeArea,
           type,
-          Object.values(this.activeArea[type])
+          editingId,
+          entity
         );
-        */
+
+        this.activeArea = null;
+        this.activeArea = this.GameState.AreaManager.getArea(areaName);
+        this.$.areaList.initAreas();
+        this.$.roomEditor.loadAllEntities();
         window.alert('Area saved');
       }
 
