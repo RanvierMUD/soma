@@ -147,7 +147,7 @@
           return;
         }
 
-        const [ x, y, z ] = room.coordinates;
+        const { x, y, z } = room.coordinates;
         if (this.floor !== z) {
           return;
         }
@@ -176,18 +176,20 @@
           return;
         }
 
-        for (const room of Object.values(this.rooms)) {
-          if (!room.coordinates || !room[type]) {
+        let defaultType = 'default' + type[0].toUpperCase() + type.substr(1);
+        for (const [roomRef, room] of this.rooms) {
+          if (!room.coordinates || !room[defaultType]) {
             continue;
           }
 
-          const [ x, y, z ] = room.coordinates;
+          const { x, y, z } = room.coordinates;
           const cell = this.shadowRoot.querySelector(`#room-${x}-${y}-${z}`);
           if (this.floor !== z) {
             continue;
           }
 
-          for (const roomEntity of room[type]) {
+
+          for (const roomEntity of room[defaultType]) {
             const id = typeof roomEntity === 'string' ? roomEntity : roomEntity.id;
             if (id === entity) {
               cell.classList.add('highlighted-cell');

@@ -41,24 +41,25 @@
         margin-bottom: 0;
       }
 
-     .fieldset {
-       padding: 0 12px 24px;
-       background-color: rgba(255, 255, 255, 0.5);
-       border-bottom: 1px solid #ccc;
-       box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-                   0 1px 5px 0 rgba(0, 0, 0, 0.12),
-                   0 3px 1px -2px rgba(0, 0, 0, 0.2);
-     }
+      .fieldset {
+        padding: 0 12px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-bottom: 1px solid #ccc;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      }
 
       .coordinates, .entities-container {
         margin-top: 12px;
+        border: 1px solid #ccc;
+        padding: 8px;
       }
       .entities-container {
-        padding-bottom: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
       }
       .coordinates-label, .entities-label {
         font-size: 16px;
-        color: #737373;
+        color: #333;
         border-bottom: 1px solid #ccc;
         display: block;
         margin-bottom: 12px;
@@ -81,18 +82,13 @@
         };
       }
 
-      .entities-list {
-        padding-left: 12px;
-      }
       .entity-container {
         margin-bottom: 12px;
         display: flex;
         flex-direction: column;
         border: 1px solid rgba(0, 0, 0, 0.3);
-        border-radius: 4px;
         padding: 4px;
         background-color: rgba(0, 0, 0, 0.1);
-        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
       }
 
       .list-add {
@@ -116,19 +112,20 @@
           <span class="area-name" slot="prefix">[[area.name]]:</span>
         </paper-input>
 
-        <div class="coordinates">
-          <label class="coordinates-label">Coordinates</label>
-          <div class="coordinates__inputs">
-            <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}"></paper-input>,
-            <paper-input id="coordY" label="Y" type="number" value="{{_coordinates.y::change}}"></paper-input>,
-            <paper-input id="coordZ" label="Z" type="number" value="{{_coordinates.z::change}}"></paper-input>
-          </div>
-        </div>
-
         <paper-input id="roomTitle" label="Title" value="{{room.title}}"></paper-input>
 
         <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
       </div>
+
+      <h2>Coordinates</h2>
+      <div class="fieldset">
+        <div class="coordinates__inputs">
+          <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}"></paper-input>,
+          <paper-input id="coordY" label="Y" type="number" value="{{_coordinates.y::change}}"></paper-input>,
+          <paper-input id="coordZ" label="Z" type="number" value="{{_coordinates.z::change}}"></paper-input>
+        </div>
+      </div>
+
 
       <h2>Scripting</h2>
       <div class="fieldset">
