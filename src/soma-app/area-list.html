@@ -98,15 +98,8 @@
       static get is() { return 'area-list'; }
       static get properties() {
         return {
-          areas: {
-            type: Object,
-            notify: true
-          },
-
-          _areaEntries: {
-            type: Array,
-            computed: '_computeAreaEntries(areas.*)',
-          },
+          gameState: Object,
+          _areaEntries: Array,
         };
       }
 
@@ -120,20 +113,27 @@
         }}));
       }
 
-      _computeAreaEntries() {
-        if (!this.areas) {
-          return [];
-        }
+      initAreas() {
+        this._areaEntries = this._computeAreaEntries();
+      }
 
-        return Object.values(this.areas);
+      _computeAreaEntries() {
+        return Array.from(this.gameState.AreaManager.areas.values());
       }
 
       _getAreaStat(areaName, type) {
-        const entities = this.areas[areaName][type];
+        const area = this.gameState.AreaManager.getArea(areaName);
+        switch(type) {
+          case 'items':
+            return area.originEntities.items.size;
+          case 'npcs':
+            return area.originEntities.npcs.size;
+          case 'rooms':
+            return area.rooms.size;
+        }
 
-        return !entities ? 0 : Object.keys(entities).length;
+        return 0;
       }
-
     }
 
     window.customElements.define(AreaList.is, AreaList);

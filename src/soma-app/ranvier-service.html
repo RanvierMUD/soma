@@ -19,6 +19,102 @@
       };
     }
 
+    saveAreaEntityData(area, type, data) {
+      const path = `${area.path}/${type}.yml`;
+      fs.writeFileSync(path, yaml.dump(data, {
+        flowLevel: 3
+      }));
+    }
+
+    loadRepo(state, repo) {
+      this.loadMessages = [];
+      this._log(`Loading repo [${repo}]...`);
+
+      const BundleManager = new (require(`${repo}/src/BundleManager`))(state);
+      state.BundleManager = BundleManager;
+      BundleManager.loadBundles(false);
+
+      this._log(`ENDLOAD: [${repo}]...`);
+    }
+
+
+    loadEntity(type, area, entitiesFile) {
+      this._log(`\t\tLOAD: ${type}...`);
+
+      // parse the item files
+      const entitiesData = this.parseFile(entitiesFile);
+
+      if (!entitiesData) {
+        this._log(`\t\tENDLOAD: ${type}, none found...`);
+        return {};
+      }
+
+      let entities = {};
+      // set the entity definitions onto the factory
+      entitiesData.forEach(entity => {
+        const entityRef = `${area.name}:${entity.id}`;
+        entities[entityRef] = entity;
+      });
+
+      this._log(`\t\tENDLOAD: ${type}...`);
+      return entities;
+    }
+
+    initGameState(repo) {
+      const srcPath = `${repo}/src/`;
+
+      const Config = require(`${srcPath}Config`);
+      const AccountManager = require(`${srcPath}AccountManager`);
+      const AreaManager = require(`${srcPath}AreaManager`);
+      const BehaviorManager = require(`${srcPath}BehaviorManager`);
+      const ChannelManager = require(`${srcPath}ChannelManager`);
+      const ClassManager = require(`${srcPath}ClassManager`);
+      const CommandManager = require(`${srcPath}CommandManager`);
+      const EffectFactory = require(`${srcPath}EffectFactory`);
+      const EventManager = require(`${srcPath}EventManager`);
+      const GameServer = require(`${srcPath}GameServer`);
+      const HelpManager = require(`${srcPath}HelpManager`);
+      const ItemFactory = require(`${srcPath}ItemFactory`);
+      const ItemManager = require(`${srcPath}ItemManager`);
+      const MobFactory = require(`${srcPath}MobFactory`);
+      const MobManager = require(`${srcPath}MobManager`);
+      const PartyManager = require(`${srcPath}PartyManager`);
+      const PlayerManager = require(`${srcPath}PlayerManager`);
+      const QuestFactory = require(`${srcPath}QuestFactory`);
+      const RoomManager = require(`${srcPath}RoomManager`);
+      const SkillManager = require(`${srcPath}SkillManager`);
+
+      const Logger = require(`${srcPath}Logger`);
+      // disable the ranvier's internal logging
+      Logger.setLevel(0);
+
+      return {
+        AreaManager: new AreaManager(),
+        ChannelManager: new ChannelManager(),
+        ClassManager: new ClassManager(), // player class manager
+        CommandManager: new CommandManager(),
+        Config, // All global server settings like default respawn time, save interval, port, what bundles to load, etc.
+        EffectFactory: new EffectFactory(),
+        HelpManager: new HelpManager(),
+        InputEventManager: new EventManager(),
+        ItemBehaviorManager: new BehaviorManager(),
+        ItemFactory: new ItemFactory(),
+        ItemManager: new ItemManager(),
+        MobBehaviorManager: new BehaviorManager(),
+        MobFactory: new MobFactory(),
+        MobManager: new MobManager(),
+        PartyManager: new PartyManager(),
+        PlayerManager: new PlayerManager(),
+        QuestFactory: new QuestFactory(),
+        RoomBehaviorManager: new BehaviorManager(),
+        RoomManager: new RoomManager(),
+        SkillManager: new SkillManager(),
+        SpellManager: new SkillManager(),
+        ServerEventManager: new EventManager(),
+        GameServer: new GameServer(),
+      };
+    }
+
     createRoom() {
       return {
         id: null,
@@ -50,200 +146,6 @@
         script: '',
         type: 'OBJECT',
       };
-    }
-
-    saveAreaEntityData(area, type, data) {
-      const path = `${area.path}/${type}.yml`;
-      fs.writeFileSync(path, yaml.dump(data, {
-        flowLevel: 3
-      }));
-    }
-
-    loadRepo(repo) {
-      this.loadMessages = [];
-      this._log(`Loading repo [${repo}]...`);
-
-      const bundlesPath = `${repo}/bundles/`;
-      const ranvierJsonPath = `${repo}/ranvier.json`;
-      const config = this.parseFile(ranvierJsonPath);
-
-      const features = [
-        { type: 'areas', path: 'areas/', fn: 'loadAreas' },
-        { type: 'behaviors', path: 'behaviors/', fn: 'loadBehaviors' },
-      ];
-
-      const bundles = fs.readdirSync(bundlesPath);
-      let repoData = {
-        areas: {},
-        behaviors: {
-          npc: [],
-          item: [],
-          room: [],
-        },
-      };
-      for (const bundle of bundles) {
-        const bundlePath = bundlesPath + bundle;
-        if (!config.bundles.includes(bundle) || fs.statSync(bundlePath).isFile() || bundle === '.' || bundle === '..') {
-          continue;
-        }
-
-        this._log(`LOAD: BUNDLE [${bundle}] START`);
-        for (const feature of features) {
-          const path = `${bundlePath}/${feature.path}`;
-          if (fs.existsSync(path)) {
-             this[feature.fn](repoData[feature.type], bundle, path);
-          }
-        }
-      }
-
-      return repoData;
-    }
-
-    loadAreas(areas, bundle, areasDir) {
-      this._log(`Loading bundle [${bundle}]...`);
-
-      const dirs = fs.readdirSync(areasDir);
-
-      for (const areaDir of dirs) {
-        if (fs.statSync(areasDir + areaDir).isFile()) {
-          continue;
-        }
-
-        const areaPath = areasDir + areaDir;
-        const areaName = path.basename(areaDir);
-        const area = this.loadArea(bundle, areaName, areaPath);
-        areas[areaName] = area;
-      }
-
-      this._log('Done');
-    }
-
-
-    /**
-    * @param {string} bundle
-    * @param {string} areaName
-    * @param {string} areaPath
-    */
-    loadArea(bundle, areaName, areaPath) {
-      this._log(`\tLoading area [${areaName}]`);
-
-      const paths = {
-        manifest: areaPath + '/manifest.yml',
-        rooms: areaPath + '/rooms.yml',
-        items: areaPath + '/items.yml',
-        npcs: areaPath + '/npcs.yml',
-        quests: areaPath + '/quests.yml',
-      };
-
-      const manifest = this.parseFile(paths.manifest);
-
-      const area = {
-        bundle,
-        path: areaPath,
-        name: areaName,
-        manifest
-      };
-
-      if (fs.existsSync(paths.items)) {
-        area.items = this.loadEntity('items', area, paths.items);
-      }
-
-      if (fs.existsSync(paths.npcs)) {
-        area.npcs = this.loadEntity('npcs', area, paths.npcs);
-      }
-
-      if (fs.existsSync(paths.rooms)) {
-        area.rooms = this.loadEntity('rooms', area, paths.rooms);
-      }
-
-      if (fs.existsSync(paths.quests)) {
-        area.quests = this.loadEntity('quests', area, paths.quests);
-      }
-
-      this._log(`\tDone`);
-      return area;
-    }
-
-    loadEntity(type, area, entitiesFile) {
-      this._log(`\t\tLOAD: ${type}...`);
-
-      // parse the item files
-      const entitiesData = this.parseFile(entitiesFile);
-
-      if (!entitiesData) {
-        this._log(`\t\tENDLOAD: ${type}, none found...`);
-        return {};
-      }
-
-      let entities = {};
-      // set the entity definitions onto the factory
-      if (Array.isArray(entitiesData)) {
-        entitiesData.forEach(entity => {
-          const entityRef = `${area.name}:${entity.id}`;
-          entities[entityRef] = entity;
-        });
-      } else {
-      debugger;
-        for (const [, entity] of Object.entries(entitiesData)) {
-          const entityRef = `${area.name}:${entity.id}`;
-          entities[entityRef] = entity;
-        }
-      }
-
-      this._log(`\t\tENDLOAD: ${type}...`);
-      return entities;
-    }
-
-    loadBehaviors(data, bundle, behaviorsDir) {
-      this._log(`\tLOAD: Behaviors...`);
-
-      for (const type in data) {
-        let typeDir = behaviorsDir + type + '/';
-
-        if (!fs.existsSync(typeDir)) {
-          continue;
-        }
-
-        this._log(`\t\tLOAD: BEHAVIORS [${type}]...`);
-        const files = fs.readdirSync(typeDir);
-
-        for (const behaviorFile of files) {
-          const behaviorPath = typeDir + behaviorFile;
-          if (!(fs.statSync(behaviorPath).isFile() && behaviorFile.match(/js$/))) {
-            continue;
-          }
-
-          const behaviorName = path.basename(behaviorFile, path.extname(behaviorFile));
-          this._log(`\t\t\tLOAD: BEHAVIORS [${type}] ${behaviorName}...`);
-
-          if (!data[type].includes(behaviorName)) {
-            data[type].push(behaviorName);
-          }
-        }
-      }
-
-      this._log(`\tENDLOAD: Behaviors...`);
-      return data;
-    }
-
-    parseFile(filepath) {
-      if (!fs.existsSync(filepath)) {
-        throw new Error(`File [${filepath}] does not exist!`);
-      }
-
-      const contents = fs.readFileSync(fs.realpathSync(filepath)).toString('utf8');
-      const parsers = {
-        '.yml': yaml.load,
-        '.yaml': yaml.load,
-        '.json': JSON.parse,
-      };
-
-      const ext = path.extname(filepath);
-      if (!(ext in parsers)) {
-        throw new Error(`File [${filepath}] does not have a valid parser!`);
-      }
-
-      return parsers[ext](contents);
     }
 
     _log(message) {
