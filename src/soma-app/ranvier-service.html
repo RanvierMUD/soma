@@ -120,28 +120,28 @@
       const CommandManager = require(`${srcPath}CommandManager`);
       const EffectFactory = require(`${srcPath}EffectFactory`);
       const EventManager = require(`${srcPath}EventManager`);
-      const GameServer = require(`${srcPath}GameServer`);
       const HelpManager = require(`${srcPath}HelpManager`);
       const ItemFactory = require(`${srcPath}ItemFactory`);
       const ItemManager = require(`${srcPath}ItemManager`);
       const MobFactory = require(`${srcPath}MobFactory`);
       const MobManager = require(`${srcPath}MobManager`);
-      const PartyManager = require(`${srcPath}PartyManager`);
       const PlayerManager = require(`${srcPath}PlayerManager`);
       const QuestFactory = require(`${srcPath}QuestFactory`);
+      const QuestGoalManager = require(`${srcPath}QuestGoalManager`);
+      const QuestRewardManager = require(`${srcPath}QuestRewardManager`);
       const RoomManager = require(`${srcPath}RoomManager`);
       const SkillManager = require(`${srcPath}SkillManager`);
 
       const Logger = require(`${srcPath}Logger`);
-      // disable the ranvier's internal logging
+      // disable ranvier's internal logging
       Logger.setLevel(0);
 
       return {
         AreaManager: new AreaManager(),
         ChannelManager: new ChannelManager(),
-        ClassManager: new ClassManager(), // player class manager
+        ClassManager: new ClassManager(),
         CommandManager: new CommandManager(),
-        Config, // All global server settings like default respawn time, save interval, port, what bundles to load, etc.
+        Config,
         EffectFactory: new EffectFactory(),
         HelpManager: new HelpManager(),
         InputEventManager: new EventManager(),
@@ -151,15 +151,15 @@
         MobBehaviorManager: new BehaviorManager(),
         MobFactory: new MobFactory(),
         MobManager: new MobManager(),
-        PartyManager: new PartyManager(),
         PlayerManager: new PlayerManager(),
         QuestFactory: new QuestFactory(),
+        QuestGoalManager: new QuestGoalManager(),
+        QuestRewardManager: new QuestRewardManager(),
         RoomBehaviorManager: new BehaviorManager(),
         RoomManager: new RoomManager(),
         SkillManager: new SkillManager(),
         SpellManager: new SkillManager(),
         ServerEventManager: new EventManager(),
-        GameServer: new GameServer(),
       };
     }
 
