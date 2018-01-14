@@ -112,7 +112,7 @@
         game-state="[[GameState]]"
         area="[[activeArea]]"
         available-npcs="[[availableNpcs]]"
-        available-items="[[availableNpcs]]"
+        available-items="[[availableItems]]"
         areas="[[areas]]"
         on-save="_saveRoom"
         on-delete-room="_deleteRoom"
@@ -124,7 +124,7 @@
         data-page="item-editor"
         area="[[activeArea]]"
         areas="[[areas]]"
-        available-items="[[availableNpcs]]"
+        available-items="[[availableItems]]"
         on-save="_saveItem"
         on-delete-item="_deleteItem"
         on-exit="_exitItemEditor"
@@ -135,8 +135,8 @@
         data-page="npc-editor"
         area="[[activeArea]]"
         areas="[[areas]]"
-        available-quests="[[availableNpcs]]"
-        available-items="[[availableNpcs]]"
+        available-quests="[[availableQuests]]"
+        available-items="[[availableItems]]"
         on-save="_saveNpc"
         on-delete-npc="_deleteNpc"
         on-exit="_exitNpcEditor"
@@ -251,7 +251,7 @@
         }));
 
         this.availableQuests = Array.from(this.GameState.QuestFactory.quests.values()).map(quest => ({
-          value: quest.id,
+          value: quest.area + ':' + quest.id,
           name: `${quest.config.title} (${quest.area})`,
         }));
 
