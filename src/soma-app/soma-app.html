@@ -13,6 +13,7 @@
 <link rel="import" href="room-editor.html">
 <link rel="import" href="item-editor.html">
 <link rel="import" href="npc-editor.html">
+<link rel="import" href="quest-editor.html">
 
 <dom-module id="soma-app">
   <template>
@@ -103,6 +104,7 @@
         on-create-item="_createItem"
         on-edit-npc="_editNpc"
         on-create-npc="_createNpc"
+        on-edit-quest="_editQuest"
         on-exit="_exitAreaDashboard"
       ></area-dashboard>
 
@@ -114,7 +116,6 @@
         available-npcs="[[availableNpcs]]"
         available-items="[[availableItems]]"
         available-rooms="[[availableRooms]]"
-        areas="[[areas]]"
         on-save="_saveRoom"
         on-delete-room="_deleteRoom"
         on-exit="_exitRoomEditor"
@@ -124,7 +125,6 @@
         id="itemEditor"
         data-page="item-editor"
         area="[[activeArea]]"
-        areas="[[areas]]"
         available-items="[[availableItems]]"
         on-save="_saveItem"
         on-delete-item="_deleteItem"
@@ -135,13 +135,24 @@
         id="npcEditor"
         data-page="npc-editor"
         area="[[activeArea]]"
-        areas="[[areas]]"
         available-quests="[[availableQuests]]"
         available-items="[[availableItems]]"
         on-save="_saveNpc"
         on-delete-npc="_deleteNpc"
         on-exit="_exitNpcEditor"
       ></npc-editor>
+
+      <quest-editor
+        id="questEditor"
+        data-page="quest-editor"
+        area="[[activeArea]]"
+        available-quests="[[availableQuests]]"
+        available-quest-goals="[[availableQuestGoals]]"
+        available-quest-rewards="[[availableQuestRewards]]"
+        on-save="_saveQuest"
+        on-delete-quest="_deleteQuest"
+        on-exit="_exitQuestEditor"
+      ></quest-editor>
     </iron-pages>
     <!-- ))) -->
 
@@ -170,11 +181,11 @@
             type: Object
           },
 
-          areas: Array,
-
           availableItems: Array,
           availableNpcs: Array,
           availableQuests: Array,
+          availableQuestGoals: Array,
+          availableQuestRewards: Array,
           availableRooms: Array,
 
           activeArea: {
@@ -256,6 +267,16 @@
           name: `${quest.config.title} (${quest.area})`,
         }));
 
+        this.availableQuestGoals = Array.from(this.GameState.QuestGoalManager.keys()).map(goalType => ({
+          value: goalType,
+          name: goalType
+        }));
+
+        this.availableQuestRewards = Array.from(this.GameState.QuestRewardManager.keys()).map(rewardType => ({
+          value: rewardType,
+          name: rewardType
+        }));
+
         this.$.areaList.initAreas();
       }
 
@@ -313,6 +334,14 @@
         this.page = 'npc-editor';
       }
 
+      _editQuest(e) {
+        const quest = e.detail.quest;
+        this._editingQuestId = quest.id;
+        // edit a copy to prevent by-ref weirdness
+        this.$.questEditor.quest = JSON.parse(JSON.stringify(quest));
+        this.page = 'quest-editor';
+      }
+
       _exitAreaDashboard() {
         this.page = 'area-list';
       }
@@ -363,6 +392,21 @@
       }
       /* ))) */
 
+      /* quest editor ((( */
+      _saveQuest(e) {
+        this._saveEntity('quests', e.detail.quest, this._editingQuestId);
+      }
+
+      _deleteQuest() {
+        this._deleteEntity('quests', this._editingQuestId);
+      }
+
+      _exitQuestEditor() {
+        this._editingQuestId = null;
+        this.page = 'area-dashboard';
+      }
+      /* ))) */
+
       _saveEntity(type, entity, editingId) {
         const areaName = this.activeArea.name;
 
@@ -405,16 +449,6 @@
         this._setupAvailableEntities();
         this.page = 'area-dashboard';
         window.alert('Deleted');
-      }
-
-      _getAreasFromState()
-      {
-        const areas = {};
-        for (const [entityRef, area] of this.GameState.AreaManager.areas) {
-          areas[entityRef] = area;
-        }
-
-        return areas;
       }
     }
 

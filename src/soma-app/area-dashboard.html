@@ -369,6 +369,15 @@
       }
       /* ))) */
 
+      /* quests ((( */
+      _selectQuest(e) {
+        const quest = (e.detail && e.detail.quest) || e.model.quest;
+        this.dispatchEvent(new CustomEvent('edit-quest', { detail: {
+          quest: quest.config,
+        }}));
+      }
+      /* ))) */
+
       _getAreaEntities(area, type) {
         if (!area) {
           return [];

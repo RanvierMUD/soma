@@ -12,7 +12,7 @@
 
 <link rel="import" href="area-map.html">
 
-<dom-module id="npc-editor">
+<dom-module id="quest-editor">
   <template>
     <style include="shared-styles"></style>
     <style include="editor-styles">
@@ -35,11 +35,6 @@
         padding: 0;
         overflow-y: auto;
       }
-      #npcDesc {
-        --paper-input-container-input: {
-          font-family: 'Roboto Mono';
-        };
-      }
       paper-toggle-button {
         display: block;
       }
@@ -47,56 +42,68 @@
 
     <div class="toolbar">
       <span class="toolbar-btn material-icons" on-tap="goBack" title="Back">arrow_back</span>
-      <span class="toolbar__title">Editing Npc</span>
-      <span class="toolbar-btn material-icons" on-tap="deleteNpc" title="Delete">delete</span>
+      <span class="toolbar__title">Editing Quest</span>
+      <span class="toolbar-btn material-icons" on-tap="deleteQuest" title="Delete">delete</span>
       <span class="toolbar-btn material-icons" on-tap="save" title="Save">save</span>
     </div>
 
     <div class="content">
       <div class="fieldset">
-        <paper-input id="npcId" label="ID" value="{{npc.id}}">
+        <paper-input id="questId" label="ID" value="{{quest.id}}">
           <span class="area-name" slot="prefix">[[area.name]]:</span>
         </paper-input>
 
-        <paper-input id="npcName" label="Name" value="{{npc.name}}"></paper-input>
+        <paper-input id="questLevel" label="Level" type="number" min="0" value="{{quest.level}}" step="1"></paper-input>
+        <paper-input id="questTitle" label="Title" value="{{quest.title}}"></paper-input>
+        <paper-textarea id="questDesc" label="Description" value="{{quest.description}}" always-float-label></paper-textarea>
+        <paper-textarea id="questCompletion" label="Completion Message" value="{{quest.completionMessage}}" always-float-label></paper-textarea>
 
-        <paper-input id="npcLevel" label="Level" type="number" min="0" value="{{npc.level}}" step="1"></paper-input>
-
-        <paper-input id="npcKeywords" label="Keywords" value="[[_npcKeywords]]" on-change="_updateKeywords"></paper-input>
-
-        <paper-textarea id="npcDesc" label="Description" value="{{npc.description}}" always-float-label></paper-textarea>
+        <paper-toggle-button id="autocompleteToggle" checked="{{quest.autoComplete}}">Auto-Complete</paper-toggle-button>
+        <paper-toggle-button id="repeatableToggle" checked="{{quest.repeatable}}">Repeatable</paper-toggle-button>
       </div>
 
-      <h2 class="section-header">Scripting</h2>
-      <div class="fieldset">
-        <paper-input  id="npcScript" label="Script name" value="{{npc.script}}" always-float-label></paper-input>
-
-        <!-- TODO: behaviors -->
-      </div>
-
-      <h2 class="section-header">Quests</h2>
+      <h2 class="section-header">Goals</h2>
       <div class="fieldset">
         <div class="entities-container">
           <div class="entities-list">
-            <template is="dom-repeat" items="[[_getNpcEntities('quests', npc.quests.*)]]">
+            <template is="dom-repeat" items="[[quest.goals]]">
               <div class="entity-container">
-                <vaadin-combo-box
-                  label="Quest"
-                  items="[[availableQuests]]"
-                  item-label-path="name"
-                  item-value-path="value"
-                  value="[[item.id]]"
-                  on-change="_itemValueUpdated"
-                >
+                <vaadin-combo-box label="Goal" items="[[availableQuestGoals]]" item-label-path="name" item-value-path="value" value="[[item.type]]" on-change="_goalsValueUpdated">
                   <template>
                     <span class="select-entity__label">[[item.name]]</span><br>
                     <span class="select-entity__value">[[item.value]]</span>
                   </template>
                 </vaadin-combo-box>
               </div>
+
+              <!-- TODO: goal config -->
             </template>
 
-            <button class="ranvier-btn list-add" on-tap="_addQuest" title="Add Quest">
+            <button class="ranvier-btn list-add" on-tap="_addGoal" title="Add Goal">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-header">Rewards</h2>
+      <div class="fieldset">
+        <div class="entities-container">
+          <div class="entities-list">
+            <template is="dom-repeat" items="[[quest.rewards]]">
+              <div class="entity-container">
+                <vaadin-combo-box label="Reward" items="[[availableQuestRewards]]" item-label-path="name" item-value-path="value" value="[[item.type]]" on-change="_rewardsValueUpdated">
+                  <template>
+                    <span class="select-entity__label">[[item.name]]</span><br>
+                    <span class="select-entity__value">[[item.value]]</span>
+                  </template>
+                </vaadin-combo-box>
+
+                <!-- TODO: reward config -->
+              </div>
+            </template>
+
+            <button class="ranvier-btn list-add" on-tap="_addReward" title="Add Reward">
               <span class="material-icons">add</span>
             </button>
           </div>
@@ -106,17 +113,17 @@
     </div>
   </template>
   <script>
-    class NpcEditor extends Polymer.GestureEventListeners(Polymer.Element) {
-      static get is() { return 'npc-editor'; }
+    class QuestEditor extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'quest-editor'; }
       static get properties() {
         return {
           area: {
             type: Object,
           },
 
-          npc: {
+          quest: {
             type: Object,
-            observer: '_npcSet'
+            observer: '_questSet'
           },
 
           dirty: {
@@ -124,10 +131,10 @@
             value: false,
           },
 
-          availableItems: Array,
-          availableQuests: Array,
+          availableQuestGoals: Array,
+          availableQuestRewards: Array,
 
-          _npcKeywords: {
+          _questKeywords: {
             type: String,
           },
         };
@@ -135,78 +142,69 @@
 
       static get observers() {
         return [
-          '_dirtify(npc.*)',
+          '_dirtify(quest.*)',
         ];
       }
 
       _dirtify(changes) {
-        if (changes.path === 'npc') {
+        if (changes.path === 'quest') {
           return;
         }
 
         this.dirty = true;
       }
 
-      _npcSet() {
-        if (!this.npc) {
+      _questSet() {
+        if (!this.quest) {
           return;
         }
-
-        this._npcKeywords = this.npc.keywords.join(', ');
 
         this.dirty = false;
       }
 
-      _updateKeywords(e) {
-        const value = e.currentTarget.value;
-        this.set('npc.keywords', value.split(',').map(keyword => keyword.trim()).filter(keyword => !!keyword));
-      }
-
-      _getNpcEntities(type) {
-        return (!this.npc || !this.npc[type]) ? [] : this.npc[type].map(item => {
-          if (typeof item === 'string') {
-            return { id: item }
-          }
-
-          return item;
+      _addGoal() {
+        this.push('quest.goals', {
+          type: null,
+          config: {},
         });
-      }
-
-      _addQuest() {
-        this._addEntity('quests', _ => ({ id: null }));
       }
 
       _addEntity(type, defaultFn) {
         const val = defaultFn();
-        if (!this.npc[type]) {
-          this.set(`npc.${type}`, []);
+        if (!this.quest[type]) {
+          this.set(`quest.${type}`, []);
         }
 
-        const entities = this.npc[type];
+        const entities = this.quest[type];
         // prevent adding an additional entity if they haven't filled in the last one
         if (entities.length && JSON.stringify(entities[entities.length - 1]) === JSON.stringify(val)) {
           return;
         }
 
-        this.push(`npc.${type}`, val);
+        this.push(`quest.${type}`, val);
       }
 
-      _itemValueUpdated(e) {
-        this._updateEntityValue('items', 'id', e);
+      _goalsValueUpdated(e) {
+        this._updateEntityValue('goals', 'type', e);
       }
+
+      _rewardsValueUpdated(e) {
+        this._updateEntityValue('rewards', 'type', e);
+      }
+
 
       _updateEntityValue(type, path, e) {
         const index = e.model.index;
         const value = e.currentTarget.value;
         if (value === '') {
-          this.splice(`npc.${type}`, index, 1);
+          this.splice(`quest.${type}`, index, 1);
           return;
         }
 
-        if (typeof this.npc[type][index] === 'string') {
-          this.set(`npc.${type}.${index}`, value);
+        if (typeof this.quest[type][index] === 'string') {
+          this.set(`quest.${type}.${index}`, value);
         } else {
-          this.set(`npc.${type}.${index}.${path}`, value);
+          this.set(`quest.${type}.${index}.${path}`, value);
         }
       }
 
@@ -224,45 +222,38 @@
 
       save() {
         // cast id to string
-        this.set('npc.id', this.npc.id + '');
-        if (!this.npc.id || this.npc.id.includes(':')) {
-          window.alert("Npcs must have an id and it cannot contain ':'");
+        this.set('quest.id', this.quest.id + '');
+        if (!this.quest.id || this.quest.id.includes(':')) {
+          window.alert("Quests must have an id and it cannot contain ':'");
           return;
         }
 
-        // clear bad values
-        if (this.npc.items) {
-          this.set('npc.items', this.npc.items.filter(item => {
-            return typeof item === 'string' ? true : !!item.id;
-          }));
-        }
+        this.set('quest.title', (this.quest.title && this.quest.title.trim()) || '');
 
-        this.set('npc.name', (this.npc.name && this.npc.name.trim()) || '');
-
-        if (!this.npc.name) {
-          window.alert("Npcs must have a name");
+        if (!this.quest.title) {
+          window.alert("Quests must have a title");
           return;
         }
 
         this.dirty = false;
         this.dispatchEvent(new CustomEvent('save', { detail: {
-          npc: this.npc,
+          quest: this.quest,
         }}));
       }
 
-      deleteNpc() {
-        if (!this.npc.id) {
+      deleteQuest() {
+        if (!this.quest.id) {
           window.alert("The can't be deleted if you unset its id");
           return;
         }
 
         if (window.confirm('Are you sure? If you have not committed in git yet it will be lost forever.')) {
-          this.dispatchEvent(new CustomEvent('delete-npc'));
+          this.dispatchEvent(new CustomEvent('delete-quest'));
         }
       }
     }
 
-    window.customElements.define(NpcEditor.is, NpcEditor);
+    window.customElements.define(QuestEditor.is, QuestEditor);
   </script>
 </dom-module>
 <!-- vim: set ft=javascript : -->
