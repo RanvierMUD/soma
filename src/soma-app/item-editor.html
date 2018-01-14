@@ -117,7 +117,7 @@
       <vaadin-combo-box
         label="Key For Lock"
         always-float-label
-        items="[[allItems]]"
+        items="[[availableItems]]"
         item-label-path="name"
         item-value-path="value"
         value="{{item.lockedBy}}"
@@ -136,7 +136,7 @@
             <div class="entity-container">
               <vaadin-combo-box
                 label="Item"
-                items="[[allItems]]"
+                items="[[availableItems]]"
                 item-label-path="name"
                 item-value-path="value"
                 value="[[item.id]]"
@@ -180,10 +180,7 @@
             value: false,
           },
 
-          allItems: {
-            type: Array,
-            computed: '_computeAllEntities("items", "name", areas.*)',
-          },
+          availableItems: Array,
 
           _itemKeywords: {
             type: String,
@@ -243,26 +240,6 @@
 
           return item;
         });
-      }
-
-      _computeAllEntities(type, labelProp) {
-        if (!this.areas) {
-          return [];
-        }
-
-        let items = [];
-        for (const area of Object.values(this.areas)) {
-          if (area[type]) {
-            Object.entries(area[type]).forEach(([ref, item]) => {
-              items.push({
-                value: ref,
-                name: `${item[labelProp]} (${area.name})`,
-              });
-            });
-          }
-        }
-
-        return items;
       }
 
       _addItem() {
