@@ -51,11 +51,16 @@
         return;
       }
 
-      if (previousId && entity.id !== previousId) {
+      if (entity) {
+        if (previousId && entity.id !== previousId) {
+          delete data[previousId];
+        }
+
+        data[entity.id] = entity;
+      } else {
         delete data[previousId];
       }
 
-      data[entity.id] = entity;
       data = Object.values(data);
 
       const areaPath = `${this.repo}/bundles/${area.areaPath}`;
@@ -188,6 +193,22 @@
         properties: {},
         script: '',
         type: 'OBJECT',
+      };
+    }
+
+    createNpc() {
+      return {
+        id: null,
+        level: 1,
+        name: '',
+        description: '',
+        script: '',
+        behaviors: {},
+        items: [],
+        keywords: [],
+        quests: [],
+        metadata: {},
+        attributes: {}
       };
     }
 

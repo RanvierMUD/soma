@@ -7,12 +7,14 @@
 <link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="editor-styles.html">
 
 <link rel="import" href="area-map.html">
 
 <dom-module id="room-editor">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles"></style>
+    <style include="editor-styles">
       :host {
         display: flex;
         flex-direction: column;
@@ -33,36 +35,10 @@
         padding: 0;
         overflow-y: auto;
       }
-
-      h2 {
-        border-bottom: 2px solid var(--ranvier-green);
-        margin-top: 32px;
-        padding-left: 12px;
-        margin-bottom: 0;
-      }
-
-      .fieldset {
-        padding: 0 12px;
-        background-color: rgba(255, 255, 255, 0.5);
-        border-bottom: 1px solid #ccc;
-        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
-      }
-
-      .coordinates, .entities-container {
+      .coordinates {
         margin-top: 12px;
         border: 1px solid #ccc;
         padding: 8px;
-      }
-      .entities-container {
-        margin-bottom: 24px;
-        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
-      }
-      .coordinates-label, .entities-label {
-        font-size: 16px;
-        color: #333;
-        border-bottom: 1px solid #ccc;
-        display: block;
-        margin-bottom: 12px;
       }
       .coordinates__inputs {
         display: flex;
@@ -96,7 +72,6 @@
         display: flex;
         margin: 12px auto 0;
       }
-
     </style>
 
     <div class="toolbar">
@@ -117,7 +92,7 @@
         <paper-textarea id="roomDesc" label="description" value="{{room.description}}" always-float-label></paper-textarea>
       </div>
 
-      <h2>Coordinates</h2>
+      <h2 class="section-header">Coordinates</h2>
       <div class="fieldset">
         <div class="coordinates__inputs">
           <paper-input id="coordX" label="X" type="number" value="{{_coordinates.x::change}}"></paper-input>,
@@ -127,14 +102,14 @@
       </div>
 
 
-      <h2>Scripting</h2>
+      <h2 class="section-header">Scripting</h2>
       <div class="fieldset">
         <paper-input  id="roomScript" label="Script name" value="{{room.script}}"></paper-input>
       </div>
 
       <!-- TODO: behaviors -->
 
-      <h2>Contents</h2>
+      <h2 class="section-header">Contents</h2>
       <div class="fieldset">
         <!-- items list -->
         <div class="entities-container">
@@ -144,7 +119,7 @@
               <div class="entity-container">
                 <vaadin-combo-box
                   label="Item"
-                  items="[[allItems]]"
+                  items="[[availableItems]]"
                   item-label-path="name"
                   item-value-path="value"
                   value="[[item.id]]"
@@ -172,7 +147,7 @@
               <div class="entity-container">
                 <vaadin-combo-box
                   label="Npc"
-                  items="[[allNpcs]]"
+                  items="[[availableNpcs]]"
                   item-label-path="name"
                   item-value-path="value"
                   value="[[item]]"
@@ -200,7 +175,7 @@
               <div class="entity-container">
                 <vaadin-combo-box
                   label="Room"
-                  items="[[allRooms]]"
+                  items="[[availableRooms]]"
                   item-label-path="name"
                   item-value-path="value"
                   value="[[item.roomId]]"
@@ -239,9 +214,9 @@
             type: Object,
           },
 
-          allItems: Array,
-          allNpcs: Array,
-          allRooms: Array,
+          availableItems: Array,
+          availableNpcs: Array,
+          availableRooms: Array,
 
           room: {
             type: Object,
@@ -268,23 +243,6 @@
           '_dirtify(room.*)',
           '_updateCoordinates(_coordinates.*)',
         ];
-      }
-
-      loadAllEntities() {
-        this.allItems = Array.from(this.gameState.ItemFactory.entities.values()).map(entity => ({
-          value: entity.entityReference,
-          name: `${entity.name} (${this.gameState.AreaManager.getAreaByReference(entity.entityReference).name})`,
-        }));
-
-        this.allNpcs = Array.from(this.gameState.MobFactory.entities.values()).map(entity => ({
-          value: entity.entityReference,
-          name: `${entity.name} (${this.gameState.AreaManager.getAreaByReference(entity.entityReference).name})`,
-        }));
-
-        this.allRooms = Array.from(this.gameState.RoomManager.rooms.values()).map(room => ({
-          value: room.entityReference,
-          name: `${room.title} (${room.area.name})`,
-        }));
       }
 
       _dirtify(changes) {

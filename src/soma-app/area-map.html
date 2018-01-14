@@ -24,7 +24,6 @@
       height: 52px;
     }
     td {
-      border-radius: 8px;
       min-width: 52px;
       cursor: pointer;
       position: relative;
@@ -36,6 +35,10 @@
       background-color: var(--ranvier-light-green);
       top: -1px;
     }
+    tr:first-child td:first-child { border-top-left-radius: 8px; }
+    tr:first-child td:last-child { border-top-right-radius: 8px; }
+    tr:last-child td:first-child { border-bottom-left-radius: 8px; }
+    tr:last-child td:last-child { border-bottom-right-radius: 8px; }
     .has-room {
       background-color: var(--ranvier-green);
       border: 2px solid var(--ranvier-dark-green);
@@ -95,7 +98,7 @@
       <div><span class="legend-has-npcs"></span> - Has NPCs</div>
       <div><span class="legend-has-items"></span> - Has Items</div>
     </div>
-    <table id="map" cellspacing="6"></table>
+    <table id="map" cellspacing="2"></table>
   </template>
   <script>
     class AreaMap extends Polymer.Element {
