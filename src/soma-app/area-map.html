@@ -33,6 +33,7 @@
     }
     td:hover {
       background-color: var(--ranvier-light-green);
+      z-index: 999;
       top: -1px;
     }
     tr:first-child td:first-child { border-top-left-radius: 8px; }
@@ -73,9 +74,13 @@
       background-color: #0ef;
     }
     .legend {
+      z-index: 998;
+      background-color: rgb(192, 192, 192);
+      border-radius: 2px;
       position: absolute;
       top: 12px;
       left: 12px;
+      padding: 2px;
       display: flex;
       flex-direction: column;
     }
@@ -90,7 +95,6 @@
     }
     .legend-has-items {
       background-color: #0ef;
-      display: inline-block;
     }
     </style>
 
